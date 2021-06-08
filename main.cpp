@@ -5,6 +5,7 @@
 #include <ctime>
 #include <cmath>
 #include <array>
+#include <random>
 
 
 #include "sts_impl.h"
@@ -53,6 +54,7 @@ private:
     bool                                               m_bRunning = false;
 };
 
+
 int main() {
 
     sts::SeedMatcher matcher;
@@ -66,32 +68,101 @@ int main() {
 //
 //        return commonRelicsCopy[0] == sts::POTION_BELT;
 //    });
+//    matcher.mustHaveCallingBellRewards(sts::BAG_OF_MARBLES, sts::PAPER_PHROG, sts::CHAMPION_BELT);
+
+//    matcher.addPandoraPredicate(sts::CharacterClass::IRONCLAD, [](std::array<sts::Card, 10> cards) {
+//        int count = 0;
+//        for (int i = 0; i < 9; i++) {
+//            if (cards[i] == sts::Card::REAPER) {
+//                ++count;
+//            }
+//        }
+//        return count >= 7;
+//    });
+
+//    matcher.addPredicate([](std::int64_t seed) {
+//        sts::Random cardRandomRng(seed);
+//        int count = 0;
+//        for (int i = 0; i < 9; i++) {
+//            sts::Card card = sts::Ironclad::cardPool[cardRandomRng.random(71)];
+//            if (card == sts::Card::REAPER) {
+//                ++count;
+//            }
+//        }
+//        return count >= 7;
+//    });
+
+    matcher.addPredicate([](std::int64_t seed) {
+        sts::Random cardRandomRng(seed);
+        int count = 0;
+        int sameLastCardCount = 1;
+        int maxSameLastCardCount = 1;
+        sts::Card lastCard = sts::Ironclad::cardPool[cardRandomRng.random(71)];
+        if (lastCard == sts::Card::REAPER) {
+            ++count;
+        }
+
+        for (int i = 1; i < 9; i++) {
+            sts::Card card = sts::Ironclad::cardPool[cardRandomRng.random(71)];
+            if (card == sts::Card::REAPER) {
+                ++count;
+            }
+            if (lastCard == card) {
+                sameLastCardCount++;
+                if (sameLastCardCount > maxSameLastCardCount) {
+                    maxSameLastCardCount = sameLastCardCount;
+                }
+            } else {
+                lastCard = card;
+                sameLastCardCount = 0;
+            }
+
+        }
+        return count >= 7 || maxSameLastCardCount == 7;
+    });
 
 
-    matcher.mustHaveCallingBellRewards(sts::BAG_OF_MARBLES, sts::PAPER_PHROG, sts::CHAMPION_BELT);
+    matcher.mustGetBossRelicFromSwap(sts::PANDORAS_BOX);
+
     sts::SeedSearcher searcher(matcher);
 
-    long seedStart = 1234567890;
-    long seedCount = (long)1e8;
+    std::int64_t seedStart = 600000000000000LL;
+//    std::int64_t seedStart = 124314589110LL;
+    auto seedCount = static_cast<std::int64_t>(1e14);
     int threadCount = 16;
+
+//    std::cout << searcher.getFirstMatching(seedStart, seedCount) << std::endl;
+
 
     std::cout <<  "searching " << seedCount << " seeds with " << threadCount << " threads, starting at " << seedStart << "\n";
 
     Timer timer;
     timer.start();
 
+    auto search = searcher.searchMt(seedStart, seedCount, threadCount);
+//    auto search  = searcher.search(seedStart, seedCount);
 //    auto search = searcher.countMatching(123456700, seedCount);
-    auto search = searcher.countMatchingMt(seedStart, seedCount, threadCount);
+//    auto search = searcher.countMatchingMt(seedStart, seedCount, threadCount);
 
 
-    std::cout << "found " << search << " results in " << timer.elapsedMilliseconds()
+    std::cout << "found " << search.size() << " results in " << timer.elapsedMilliseconds()
         << " millis" << std::endl;
 
-//    for ( auto x : search) {
-//        std::cout << sts::SeedHelper::getString(x) << "\n";
-//    }
+    for (auto x : search) {
+        std::cout << sts::SeedHelper::getString(x) << "\n";
+    }
+
+
+
+
+
+
 
 }
+
+
+
+
 
 
 

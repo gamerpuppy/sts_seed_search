@@ -1,6 +1,3 @@
-//
-// Created by keega on 6/7/2021.
-//
 
 #ifndef STS_SEED_SEARCH_JAVA_RANDOM_H
 #define STS_SEED_SEARCH_JAVA_RANDOM_H

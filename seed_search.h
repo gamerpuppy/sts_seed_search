@@ -12,11 +12,8 @@
 namespace sts {
 
 typedef std::function<bool(NeowBlessing)> NeowPredicate;
-typedef std::function<bool(long)> SeedPredicate;
-
-
-
-
+typedef std::function<bool(std::int64_t)> SeedPredicate;
+typedef std::function<bool(std::array<Card,10>)> PandoraPredicate;
 
 class SeedMatcher {
 private:
@@ -31,9 +28,12 @@ private:
 public:
     void addPredicate(SeedPredicate p);
     void addNeowPredicate(NeowPredicate p);
+    void addPandoraPredicate(CharacterClass character, PandoraPredicate p);
+
     bool match(std::int64_t seed) const;
 
     void mustHaveCallingBellRewards(Relic common, Relic uncommon, Relic rare);
+    void mustGetBossRelicFromSwap(Relic bossRelic);
 
 
 };
@@ -46,10 +46,14 @@ public:
     SeedSearcher(SeedMatcher matcher) : matcher(std::move(matcher)) {}
 
     std::vector<std::int64_t> search(std::int64_t startSeed, std::int64_t count) const;
+    std::vector<std::int64_t> searchMt(int64_t startSeed, int64_t count, int threadCount) const;
+
+
+
     std::int64_t countMatching(std::int64_t startSeed, std::int64_t count) const;
-
-
     std::int64_t countMatchingMt(std::int64_t startSeed, std::int64_t count, int threads) const;
+
+    std::string getFirstMatching(std::int64_t startSeed, std::int64_t maxCount) const;
 
 
 };

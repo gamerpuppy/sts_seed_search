@@ -19,7 +19,6 @@ private:
     static constexpr std::int64_t mask = (1LL << 48) - 1;
     static constexpr double DOUBLE_UNIT = 0x1.0p-53; // 1.0 / (1L << 53)
 
-
     static std::int64_t initialScramble(std::int64_t seed) {
         return (seed ^ multiplier) & mask;
     }
@@ -67,8 +66,7 @@ namespace Collections {
 
     // only works for collections with random access or size < shuffle threshold
     template <typename ForwardIterator>
-    void shuffle(ForwardIterator begin, ForwardIterator end, java::Random &r) {
-        Random rnd = r;
+    void shuffle(ForwardIterator begin, ForwardIterator end, java::Random rnd) {
         auto size = static_cast<int32_t>(end-begin);
 
         for (int i=size; i>1; i--) {

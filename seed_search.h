@@ -59,6 +59,35 @@ public:
 };
 
 
+struct ThreadData {
+    const SeedMatcher *m;
+    std::int64_t startSeed;
+    std::int64_t count;
+    int threadCount;
+    int threadId;
+    std::int64_t *foundOutCount;
+    std::vector<std::int64_t> *foundOutRet;
+
+    ThreadData(const SeedMatcher *m, int64_t startSeed, int64_t count, int threadCount, int threadId,
+               int64_t *foundOutCount) : m(m), startSeed(startSeed), count(count), threadCount(threadCount),
+                                         threadId(threadId), foundOutCount(foundOutCount) {}
+
+    ThreadData(const SeedMatcher *m, int64_t startSeed, int64_t count, int threadCount, int threadId,
+               std::vector<int64_t> *foundOutRet) : m(m), startSeed(startSeed), count(count), threadCount(threadCount),
+                                                    threadId(threadId), foundOutRet(foundOutRet) {}
+};
+
+
+struct seed_result {
+    int count;
+    const char* name;
+};
+
+
+Card getCard(int idx, CharacterClass characterClass);
+seed_result analyzePandorasBoxRewards(std::int64_t seed, CharacterClass characterClass);
+
+
 
 }
 

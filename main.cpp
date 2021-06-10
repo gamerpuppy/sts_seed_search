@@ -79,6 +79,7 @@ int main(int argc, const char ** argv) {
 
     sts::runSearch(config);
 
+
     return 0;
 }
 

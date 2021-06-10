@@ -5,6 +5,8 @@
 #ifndef STS_SEED_SEARCH_SEED_SEARCH_FAST_H
 #define STS_SEED_SEARCH_SEED_SEARCH_FAST_H
 
+#include <cstdint>
+
 #include "java_random.h"
 
 namespace sts::fast {
@@ -83,6 +85,8 @@ namespace sts::fast {
         }
 
     };
+
+
 
 
 

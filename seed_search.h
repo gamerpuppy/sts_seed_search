@@ -11,83 +11,35 @@
 
 namespace sts {
 
-typedef std::function<bool(NeowBlessing)> NeowPredicate;
-typedef std::function<bool(std::int64_t)> SeedPredicate;
-typedef std::function<bool(std::array<Card,10>)> PandoraPredicate;
+    struct ThreadData {
+        std::int64_t startSeed;
+        std::int64_t endSeed;
+        int threadCount;
+        int threadId;
+        std::vector<std::int64_t> *foundVec;
 
-class SeedMatcher {
-private:
-    struct SeedPredicateWrapper {
-        int order = 0;
-        SeedPredicate predicate;
-        SeedPredicateWrapper(int order, SeedPredicate predicate) : order(order), predicate(std::move(predicate)) {}
+        ThreadData(int64_t startSeed, int64_t endSeed, int threadCount, int threadId,
+                   std::vector<int64_t> *foundVec) : startSeed(startSeed), endSeed(endSeed), threadCount(threadCount),
+                                                     threadId(threadId), foundVec(foundVec) {}
     };
 
-    std::vector<SeedPredicateWrapper> predicates;
 
-public:
-    void addPredicate(SeedPredicate p);
-    void addNeowPredicate(NeowPredicate p);
-    void addPandoraPredicate(CharacterClass character, PandoraPredicate p);
+    struct PandorasBoxRewardResult {
+        int count;
+        const char *name;
+    };
 
-    bool match(std::int64_t seed) const;
+    std::vector<int64_t> testPandorasForDefectWatcherMt(std::int64_t startSeed, std::int64_t endSeed, int threadCount);
 
-    void mustHaveCallingBellRewards(Relic common, Relic uncommon, Relic rare);
-    void mustGetBossRelicFromSwap(Relic bossRelic);
-
-
-};
-
-class SeedSearcher {
-private:
-    SeedMatcher matcher;
-
-public:
-    SeedSearcher(SeedMatcher matcher) : matcher(std::move(matcher)) {}
-
-    std::vector<std::int64_t> search(std::int64_t startSeed, std::int64_t count) const;
-    std::vector<std::int64_t> searchMt(int64_t startSeed, int64_t count, int threadCount) const;
+    struct SearchConfig {
+        std::string resultsFile = "results.txt";
+        std::int64_t blockAmount = 50000000000LL;
+        std::int64_t startSeed = -1;
+        int threads = 1;
+    };
 
 
-
-    std::int64_t countMatching(std::int64_t startSeed, std::int64_t count) const;
-    std::int64_t countMatchingMt(std::int64_t startSeed, std::int64_t count, int threads) const;
-
-    std::string getFirstMatching(std::int64_t startSeed, std::int64_t maxCount) const;
-
-
-};
-
-
-struct ThreadData {
-    const SeedMatcher *m;
-    std::int64_t startSeed;
-    std::int64_t count;
-    int threadCount;
-    int threadId;
-    std::int64_t *foundOutCount;
-    std::vector<std::int64_t> *foundOutRet;
-
-    ThreadData(const SeedMatcher *m, int64_t startSeed, int64_t count, int threadCount, int threadId,
-               int64_t *foundOutCount) : m(m), startSeed(startSeed), count(count), threadCount(threadCount),
-                                         threadId(threadId), foundOutCount(foundOutCount) {}
-
-    ThreadData(const SeedMatcher *m, int64_t startSeed, int64_t count, int threadCount, int threadId,
-               std::vector<int64_t> *foundOutRet) : m(m), startSeed(startSeed), count(count), threadCount(threadCount),
-                                                    threadId(threadId), foundOutRet(foundOutRet) {}
-};
-
-
-struct seed_result {
-    int count;
-    const char* name;
-};
-
-
-Card getCard(int idx, CharacterClass characterClass);
-seed_result analyzePandorasBoxRewards(std::int64_t seed, CharacterClass characterClass);
-
-
+    void runSearch(SearchConfig config);
 
 }
 

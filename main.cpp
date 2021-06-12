@@ -133,26 +133,26 @@ void readAndDescribeSeeds(std::string fName) {
 
 int main(int argc, const char ** argv) {
 
-    sts::mapTest();
+//    sts::mapTest();
 
-//    std::int64_t seedStart = 0;
-//    std::int64_t seedCount = (std::int64_t) 1e7;
+    std::int64_t seedStart = 0;
+    std::int64_t seedCount = (std::int64_t) 1e5;
+
+    int eventCount = 0;
 //
-//    int eventCount = 0;
-//
-//    for (std::int64_t x = 0; x < seedCount; ++x) {
-//        auto seed = seedStart + x;
-//
-//        sts::Random mapRng(seed+1);
-//        sts::Map map;
-//        sts::generateMap(map, mapRng);
-//
-//        if (map.getNode(0,0).room == sts::Room::EVENT) {
-//            ++eventCount;
-//        }
-//    }
-//
-//    std::cout << eventCount << std::endl;
+    for (std::int64_t x = 0; x < seedCount; ++x) {
+        auto seed = seedStart + x;
+
+        sts::Random mapRng(seed+1);
+        sts::Map map;
+        sts::generateMap(map, mapRng);
+
+        if (map.getNode(0,1).room == sts::Room::EVENT) {
+            ++eventCount;
+        }
+    }
+
+    std::cout << eventCount << std::endl;
 
 //    for (int i = 0; i < 285; i++) {
 //        std::cout << sts::cardNames[i] << " " << sts::normalCardNames[i] << '\n';

@@ -38,8 +38,8 @@ static inline int randRange(Random &rng, int min, int max) {
 }
 
 void insertEdge(MapNode &mapNode, Edge edge, int idx) {
-    for (int x = mapNode.edgeCount; x >= idx; --x) {
-        mapNode.edges[x+1] = mapNode.edges[x];
+    for (int x = mapNode.edgeCount; x > idx; --x) {
+        mapNode.edges[x] = mapNode.edges[x-1];
     }
     mapNode.edges[idx] = edge;
     ++mapNode.edgeCount;

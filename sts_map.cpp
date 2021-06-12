@@ -81,7 +81,6 @@ void MapNode::addParent(MapNode *node) {
 }
 
 void MapNode::addEdge(Edge edge) {
-    assert(edgeCount < 3);
     int cur = 0;
     while (true) {
         if (edgeCount == cur) {
@@ -384,6 +383,45 @@ std::string Map::toString(bool showRoomSymbols) const {
     return str;
 }
 
+int countAvailableRooms(const Map &map) {
+    int count = 0;
+    for (int row = 0; row < MAP_HEIGHT; ++row) {
+        if (row == static_cast<int>(map.rooms.size())-2) {
+           continue;
+        }
+        for (auto &node : map.rooms.at(row)) {
+            if (node.edgeCount > 0) {
+                ++count;
+            }
+        }
+    }
+    return count;
+}
+
+void setFixedRoomTypes(Map &map) {
+    const int restRow = static_cast<int>(map.rooms.size())-2;
+    const int monsterRow = 0;
+    const int treasureRow = 8;
+    for (auto &node : map.rooms.at(restRow)) {
+        node.room = sts::Room::REST;
+    }
+    for (auto &node : map.rooms.at(monsterRow)) {
+        node.room = sts::Room::MONSTER;
+    }
+    for (auto &node : map.rooms.at(treasureRow)) {
+        node.room = sts::Room::TREASURE;
+    }
+}
+
+void assignRooms(Map &map) {
+    int available = countAvailableRooms(map);
+    setFixedRoomTypes(map);
+
+
+
+
+
+}
 
 void initNodes(Map &map) {
     for (int y = 0; y < MAP_HEIGHT; y++) {
@@ -399,14 +437,16 @@ void sts::generateMap(Map &map, sts::Random mapRng) {
     initNodes(map);
     createPaths(map, mapRng);
     filterRedundantEdgesFromFirstRow(map);
-
 }
 
-//void sts::mapTest() {
-//    std::int64_t seed = 100;
-//    sts::Map map;
-//    sts::generateMap(map, sts::Random(seed+1));
-//    std::cout << map.toString(false);
-//    return;
-//}
+void sts::mapTest() {
+//    for (std::int64_t seed = 0; seed < 10000; seed++) {
+//        sts::Map map;
+//        sts::generateMap(map, sts::Random(seed+1));
+//    }
+    std::int64_t seed = 7;
+    sts::Map map;
+    sts::generateMap(map, sts::Random(seed+1));
+    std::cout << map.toString(false);
+}
 

@@ -113,17 +113,17 @@ void MapNode::addEdge(Edge edge) {
 }
 
 Edge &MapNode::getMaxEdge() {
-    assert(edgeCount > 0);
+//    assert(edgeCount > 0);
     return edges.at(edgeCount-1);
 }
 
 Edge &MapNode::getMinEdge() {
-    assert(edgeCount > 0);
+//    assert(edgeCount > 0);
     return edges.at(0);
 }
 
 MapNode *MapNode::getMaxXParent() {
-    assert(parentCount > 0);
+//    assert(parentCount > 0);
 
     MapNode *maxParent = parents[0];
     for (int i = 1; i < parentCount; i++) {
@@ -135,7 +135,7 @@ MapNode *MapNode::getMaxXParent() {
 }
 
 MapNode *MapNode::getMinXParent() {
-    assert(parentCount > 0);
+//    assert(parentCount > 0);
 
     MapNode *minParent = parents[0];
     for (int i = 1; i < parentCount; i++) {
@@ -172,8 +172,8 @@ MapNode *getCommonAncestor(MapNode &node1, MapNode &node2) {
     if (node1.y != node2.y) {
         int x = 0;
     }
-    assert(node1.y == node2.y);
-    assert(&node1 != &node2);
+//    assert(node1.y == node2.y);
+//    assert(&node1 != &node2);
 
     MapNode *l_node;
     MapNode *r_node;
@@ -201,7 +201,8 @@ MapNode *getCommonAncestor(MapNode &node1, MapNode &node2) {
         if (l_node == r_node) {
             return l_node;
         }
-        --current_y;
+        return nullptr;
+//        --current_y;
     }
 }
 
@@ -594,8 +595,8 @@ void assignRoomsToNodes(Map &map, Room *rooms, int roomsSize) {
                 node.room = rooms[roomIdx];
                 removeElement(rooms, roomIdx, roomsSize--);
             } else {
-                // this line replaces last minute node checker
-                node.room = sts::Room::MONSTER;
+//                // this line replaces last minute node checker
+//                node.room = sts::Room::MONSTER;
             }
         }
     }
@@ -627,7 +628,7 @@ void assignRooms(Map &map, Random &rng) {
     }
 
     assignRoomsToNodes(map, rooms, counts.unassigned);
-//    lastMinuteNodeChecker(map);
+    lastMinuteNodeChecker(map);
     return;
 }
 

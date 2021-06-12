@@ -135,8 +135,11 @@ int main(int argc, const char ** argv) {
 
 //    sts::mapTest();
 
-    std::int64_t seedStart = 0;
-    std::int64_t seedCount = (std::int64_t) 1e5;
+    Timer timer;
+    timer.start();
+
+    std::int64_t seedStart = 5000000;
+    std::int64_t seedCount = (std::int64_t) 1e6;
 
     int eventCount = 0;
 //
@@ -147,12 +150,22 @@ int main(int argc, const char ** argv) {
         sts::Map map;
         sts::generateMap(map, mapRng);
 
-        if (map.getNode(0,1).room == sts::Room::EVENT) {
+        if (map.getNode(0,11).room == sts::Room::EVENT) {
             ++eventCount;
         }
     }
 
+
+    double millis = timer.elapsedMilliseconds();
+
+    std::cout << timer.elapsedMilliseconds() << " ms" << std::endl;
+
+    std::cout << seedCount/millis << " seeds/ms" << std::endl;
+
+
     std::cout << eventCount << std::endl;
+
+
 
 //    for (int i = 0; i < 285; i++) {
 //        std::cout << sts::cardNames[i] << " " << sts::normalCardNames[i] << '\n';

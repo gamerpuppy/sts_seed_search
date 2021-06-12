@@ -7,11 +7,13 @@
 #include <array>
 #include <random>
 #include <fstream>
+#include <sstream>
 
 
 #include "sts_impl.h"
 #include "seed_search.h"
 #include "java_random.h"
+#include "sts_map.h"
 
 class Timer
 {
@@ -66,9 +68,49 @@ private:
 //}
 
 
-int main(int argc, const char ** argv) {
-//    analyzeSeeds();
-//    runSearch(228076932372177LL);
+std::vector<sts::candidate> parseCandidates(std::string fName) {
+    std::ifstream input(fName);
+
+
+    std::vector<sts::candidate> ret;
+
+    std::string line;
+    while (std::getline(input, line)) {
+        std::stringstream inputStringStream(line);
+        sts::candidate c;
+        std::int32_t offset;
+        std::int64_t start;
+        std::int64_t end;
+        std::int32_t stride;
+
+
+        inputStringStream >> offset;
+        inputStringStream >> start;
+        inputStringStream >> end;
+        inputStringStream >> stride;
+
+
+        c.start = start;
+        c.end = end;
+        c.stride = stride;
+
+        ret.push_back(c);
+    }
+    return ret;
+};
+
+
+void runCandidateFilter() {
+    auto cs = parseCandidates("output4.txt");
+    auto res = sts::runSearch2(cs);
+
+    std::sort(res.begin(), res.end());
+
+    sts::describeSeeds(res);
+
+}
+
+void runNormalSearch() {
     sts::SearchConfig config;
     std::cout << "Pandoras Box Seed Search by gamerpuppy" << "\n";
     std::cout << "--will output results to results.txt--\n";
@@ -76,10 +118,32 @@ int main(int argc, const char ** argv) {
     std::cin >> config.threads;
     std::cout << "Enter -1 (for random start) or the seed to start start search at." << std::endl;
     std::cin >> config.startSeed;
+//
+}
 
-    sts::runSearch(config);
+void readAndDescribeSeeds(std::string fName) {
+    std::ifstream input(fName);
+    std::string seedStr;
+    std::vector<std::int64_t> seeds;
+    while (std::getline(input, seedStr)) {
+        seeds.push_back(sts::SeedHelper::getLong(seedStr));
+    }
+    sts::describeSeeds(seeds);
+}
 
+int main(int argc, const char ** argv) {
 
+    sts::mapTest();
+
+//    for (int i = 0; i < 285; i++) {
+//        std::cout << sts::cardNames[i] << " " << sts::normalCardNames[i] << '\n';
+//    }
+//    readAndDescribeSeeds("seeds.txt");
+//
+//    std::vector<std::int64_t> seeds = {sts::SeedHelper::getLong("FGZ8HEJLPY")};
+//    sts::describeSeeds(seeds);
+
+//    runCandidateFilter();
     return 0;
 }
 

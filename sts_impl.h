@@ -3,9 +3,12 @@
 #define STS_SEED_SEARCH_STS_IMPL_H
 
 #include <cstdint>
+#include <algorithm>
+#include <string>
+#include <array>
+#include <vector>
 
 #include "sts_constants.h"
-
 
 namespace sts {
 

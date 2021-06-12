@@ -38,10 +38,28 @@ namespace sts {
         int threads = 1;
     };
 
+    struct candidate {
+        std::int64_t start;
+        std::int64_t end;
+        std::int32_t stride;
 
+};
     void runSearch(SearchConfig config);
+    std::vector<std::int64_t> runSearch2(const std::vector<candidate> &candidates);
+
+
+    void describeSeeds(const std::vector<std::int64_t> seeds);
+
+    void test();
+
+
+
+
+
+
 
 }
+
 
 
 #endif //STS_SEED_SEARCH_SEED_SEARCH_H

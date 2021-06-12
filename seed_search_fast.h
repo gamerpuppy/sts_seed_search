@@ -13,8 +13,6 @@ namespace sts::fast {
 
     class Random {
     private:
-        static constexpr double NORM_DOUBLE = 1.1102230246251565E-16;
-        static constexpr double NORM_FLOAT = 5.9604644775390625E-8;
         static constexpr std::uint64_t ONE_IN_MOST_SIGNIFICANT = static_cast<std::uint64_t>(1) << 63;
 
         std::uint64_t seed0;
@@ -50,10 +48,6 @@ namespace sts::fast {
             return static_cast<std::int64_t>(value);
         }
 
-        std::int32_t nextInt() {
-            return static_cast<std::int32_t>(nextLong());
-        }
-
         std::int32_t nextInt(std::int32_t n) {
             return static_cast<std::int32_t>(nextLong(static_cast<std::uint64_t>(n)));
         }
@@ -66,22 +60,8 @@ namespace sts::fast {
             seed1 = murmurHash3(seed0);
         }
 
-        Random(std::uint64_t seed, std::int32_t targetCounter) : Random(seed) {
-            for (int i = 0; i < targetCounter; i++) {
-                random(999);
-            }
-        }
-
         std::int32_t random(std::int32_t range) {
             return nextInt(range + 1);
-        }
-
-        std::int32_t random(std::int32_t start, std::int32_t end) {
-            return start + nextInt(end - start + 1);
-        }
-
-        std::int64_t randomLong() {
-            return nextLong();
         }
 
     };

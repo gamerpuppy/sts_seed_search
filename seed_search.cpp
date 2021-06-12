@@ -65,9 +65,6 @@ inline bool testSeedForPandorasRelic(std::int64_t seed, CharacterClass character
 
 static std::ofstream *fileOut;
 
-
-
-
 Card getCard(int idx, CharacterClass characterClass) {
     switch (characterClass) {
         case CharacterClass::IRONCLAD:
@@ -135,7 +132,7 @@ PandorasBoxRewardResult analyzePandorasBoxRewards(std::int64_t seed, CharacterCl
 
     PandorasBoxRewardResult ret;
     ret.count = maxSameLastCardCount;
-    ret.name = sts::cardNames[(int)maxCard];
+    ret.name = sts::normalCardNames[(int)maxCard];
     return ret;
 }
 
@@ -146,13 +143,11 @@ void logSeed(std::int64_t seed) {
     if (testSeedForPandorasRelic(seed, CharacterClass::DEFECT)) {
         auto res = analyzePandorasBoxRewards(seed, CharacterClass::DEFECT);
         std::cout << getTime() << " seed " << seedStr << " " << seed << " " << res.name << " " << res.count << std::endl;
-        *fileOut << getTime() << " seed " << seedStr << " " << seed << " " << res.name << " " << res.count << std::endl;
     }
 
     if (testSeedForPandorasRelic(seed, CharacterClass::WATCHER)) {
         auto res = analyzePandorasBoxRewards(seed, CharacterClass::WATCHER);
         std::cout << getTime() << " seed " << seedStr << " " << seed << " " << res.name << " " << res.count << std::endl;
-        *fileOut << getTime() << " seed " << seedStr << " " << seed << " " << res.name << " " << res.count << std::endl;
     }
 
 }
@@ -160,46 +155,53 @@ void logSeed(std::int64_t seed) {
 inline bool testSeed(std::int64_t seed) {
     sts::fast::Random rand(seed);
 
+    const int cardPoolSizeMinusOne = Ironclad::cardPool.size()-1;
+
     // 0
-    auto num = rand.random(70);
+    auto num = rand.random(cardPoolSizeMinusOne);
 
     // 1
-    if (rand.random(70) != num) {
+    if (rand.random(cardPoolSizeMinusOne) != num) {
         return false;
     }
     // 2
-    if (rand.random(70) != num) {
+    if (rand.random(cardPoolSizeMinusOne) != num) {
         return false;
     }
     // 3
-    if (rand.random(70) != num) {
+    if (rand.random(cardPoolSizeMinusOne) != num) {
         return false;
     }
     // 4
-    if (rand.random(70) != num) {
+    if (rand.random(cardPoolSizeMinusOne) != num) {
         return false;
     }
     // 5
-    if (rand.random(70) != num) {
+    if (rand.random(cardPoolSizeMinusOne) != num) {
         return false;
     }
     // 6
-    if (rand.random(70) != num) {
+    if (rand.random(cardPoolSizeMinusOne) != num) {
         return false;
     }
 //    // 7
 //    if (rand.random(70) != num) {
 //        return false;
 //    }
+    return testSeedForPandorasRelic(seed, CharacterClass::IRONCLAD);
 
-    return testSeedForPandorasRelic(seed, CharacterClass::DEFECT)
-        || testSeedForPandorasRelic(seed, CharacterClass::WATCHER);
+//    return testSeedForPandorasRelic(seed, CharacterClass::DEFECT)
+//        || testSeedForPandorasRelic(seed, CharacterClass::WATCHER);
+}
+
+void sts::test() {
+    testSeed(164734);
 }
 
 void testPandoraSeedsForDefectWatcherMtHelper(ThreadData data) {
     for (std::int64_t seed = data.startSeed+data.threadId; seed < data.endSeed; seed += data.threadCount) {
         if (testSeed(seed)) {
-            logSeed(seed);
+//            logSeed(seed);
             data.foundVec->push_back(seed);
         }
     }
@@ -227,26 +229,113 @@ std::vector<int64_t> sts::testPandorasForDefectWatcherMt(std::int64_t startSeed,
 }
 
 void sts::runSearch(SearchConfig config) {
-    if (config.startSeed == -1) {
-        time_t t;
-        srand((unsigned) time(&t));
-        config.startSeed = static_cast<std::int64_t>(rand()%1000000)*config.blockAmount;
+//    if (config.startSeed == -1) {
+//        time_t t;
+//        srand((unsigned) time(&t));
+//        config.startSeed = static_cast<std::int64_t>(rand()%1000000)*config.blockAmount;
+//    }
+
+//    fileOut = new std::ofstream(config.resultsFile, std::ios_base::app);
+
+//    while (true) {
+    std::int64_t endSeed = config.startSeed+config.blockAmount;
+    std::string time = getTime();
+    std::cout << time << " searching seeds from " << config.startSeed << "(" << (double)config.startSeed / 1e12 << "T)" << " to " << endSeed << "(" << (double)endSeed/ 1e12 << "T)" << std::endl;
+//    *fileOut << time << " searching 50B seeds starting at: " << config.startSeed << "(" << (double)config.startSeed / 1e12 << "T)" << std::endl;
+
+    auto matchedSeedsVec = testPandorasForDefectWatcherMt(config.startSeed, endSeed, config.threads);
+    time = getTime();
+    std::cout << time << " found " << matchedSeedsVec.size() << " results" << std::endl;
+//    *fileOut << time << " found " << matchedSeedsVec.size() << " results" << std::endl;
+//    fileOut->flush();
+    config.startSeed += config.blockAmount;
+//    }
+}
+
+
+
+
+void testPandoraSeedsForDefectWatcherMtHelper2(ThreadData data) {
+    for (std::int64_t seed = data.startSeed; seed < data.endSeed; seed += data.threadCount) {
+        if (testSeed(seed)) {
+//            logSeed(seed);
+            data.foundVec->push_back(seed);
+        }
+    }
+}
+
+
+std::vector<int64_t> testPandorasForDefectWatcherMt2(const std::vector<candidate> &candidates, int offset, int threadCount) {
+    std::thread *threads[threadCount];
+    std::vector<std::int64_t> results[threadCount];
+
+    for (int tid = 0; tid < threadCount; ++tid) {
+        if (offset+tid >= candidates.size()) {
+            break;
+        }
+        candidate c = candidates[offset+tid];
+        ThreadData data(c.start, c.end, c.stride, tid, &results[tid]);
+        threads[tid] = new std::thread(testPandoraSeedsForDefectWatcherMtHelper2, data);
     }
 
-    fileOut = new std::ofstream(config.resultsFile, std::ios_base::app);
+    std::vector<std::int64_t> combined;
+    for (int tid = 0; tid < threadCount; ++tid) {
+        if (offset+tid >= candidates.size()) {
+            break;
+        }
+        threads[tid]->join();
+        combined.insert(combined.end(), results[tid].begin(), results[tid].end());
+        delete threads[tid];
+    }
 
-    while (true) {
+    std::sort(combined.begin(), combined.end());
+    return combined;
+}
+
+
+std::vector<std::int64_t> sts::runSearch2(const std::vector<candidate> &candidates) {
+    std::vector<std::int64_t> matchedSeeds;
+
+    int offset = 0;
+    while (offset < candidates.size()) {
         std::string time = getTime();
-        std::cout << time << " searching 50B seeds starting at: " << config.startSeed << "(" << (double)config.startSeed / 1e12 << "T)" << std::endl;
-        *fileOut << time << " searching 50B seeds starting at: " << config.startSeed << "(" << (double)config.startSeed / 1e12 << "T)" << std::endl;
-        std::int64_t endSeed = config.startSeed+config.blockAmount;
-        auto matchedSeedsVec = testPandorasForDefectWatcherMt(config.startSeed, endSeed, config.threads);
+        auto matchedSeedsVec = testPandorasForDefectWatcherMt2(candidates, offset, 16);
+        matchedSeeds.insert(matchedSeeds.end(), matchedSeedsVec.begin(), matchedSeedsVec.end());
         time = getTime();
-        std::cout << time << " found " << matchedSeedsVec.size() << " results" << std::endl;
-        *fileOut << time << " found " << matchedSeedsVec.size() << " results" << std::endl;
-        fileOut->flush();
-        config.startSeed += config.blockAmount;
+//        std::cout << time << " found " << matchedSeedsVec.size() << " results" << std::endl;
+        offset += 16;
     }
+
+    return matchedSeeds;
+}
+
+
+void sts::describeSeeds(const std::vector<std::int64_t> seeds) {
+
+    for (auto seed : seeds) {
+        std::string seedStr = SeedHelper::getString(seed);
+
+        if (testSeedForPandorasRelic(seed, CharacterClass::IRONCLAD)) {
+            auto res = analyzePandorasBoxRewards(seed, CharacterClass::IRONCLAD);
+            std::cout << "Ironclad, " << seedStr << ", " << res.name << ", " << res.count << std::endl;
+        }
+
+
+//        if (testSeedForPandorasRelic(seed, CharacterClass::DEFECT)) {
+//            auto res = analyzePandorasBoxRewards(seed, CharacterClass::DEFECT);
+//            std::cout << "Defect, " << seedStr << ", " << res.name << ", " << res.count << std::endl;
+//
+//            auto res2 = analyzePandorasBoxRewards(seed, CharacterClass::SILENT);
+//            std::cout << "Silent, " << seedStr << ", " << res2.name << ", " << res2.count << std::endl;
+//        }
+//
+//        if (testSeedForPandorasRelic(seed, CharacterClass::WATCHER)) {
+//            auto res = analyzePandorasBoxRewards(seed, CharacterClass::WATCHER);
+//            std::cout << "Watcher, " <<  seedStr << ", " << res.name << ", " << res.count << std::endl;
+//        }
+    }
+
+
 }
 
 

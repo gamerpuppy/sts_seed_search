@@ -1059,6 +1059,13 @@ namespace sts {
         WATCHER
     };
 
+    constexpr int SMALL_CHEST_CHANCE = 50;
+    constexpr int MEDIUM_CHEST_CHANCE = 33;
+    constexpr int LARGE_CHEST_CHANCE = 17;
+    constexpr int COMMON_RELIC_CHANCE = 50;
+    constexpr int UNCOMMON_RELIC_CHANCE = 33;
+    constexpr int RARE_RELIC_CHANCE = 17;
+
 }
 
 

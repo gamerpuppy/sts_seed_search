@@ -57,10 +57,6 @@ private:
         return static_cast<std::int32_t>(nextLong());
     }
 
-    std::int32_t nextInt(std::int32_t n) {
-        return static_cast<std::int32_t>(nextLong(static_cast<std::uint64_t>(n)));
-    }
-
     double nextDouble() {
         std::uint64_t x = static_cast<std::uint64_t>(nextLong()) >> 11;
         return static_cast<double>(x) * NORM_DOUBLE;
@@ -137,6 +133,9 @@ public:
         return nextBoolean();
     }
 
+    std::int32_t nextInt(std::int32_t n) {
+        return static_cast<std::int32_t>(nextLong(static_cast<std::uint64_t>(n)));
+    }
 };
 
 struct SeedHelper {

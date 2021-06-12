@@ -101,7 +101,7 @@ std::vector<sts::candidate> parseCandidates(std::string fName) {
 
 
 void runCandidateFilter() {
-    auto cs = parseCandidates("output4.txt");
+    auto cs = parseCandidates("output5.txt");
     auto res = sts::runSearch2(cs);
 
     std::sort(res.begin(), res.end());
@@ -134,6 +134,25 @@ void readAndDescribeSeeds(std::string fName) {
 int main(int argc, const char ** argv) {
 
     sts::mapTest();
+
+//    std::int64_t seedStart = 0;
+//    std::int64_t seedCount = (std::int64_t) 1e7;
+//
+//    int eventCount = 0;
+//
+//    for (std::int64_t x = 0; x < seedCount; ++x) {
+//        auto seed = seedStart + x;
+//
+//        sts::Random mapRng(seed+1);
+//        sts::Map map;
+//        sts::generateMap(map, mapRng);
+//
+//        if (map.getNode(0,0).room == sts::Room::EVENT) {
+//            ++eventCount;
+//        }
+//    }
+//
+//    std::cout << eventCount << std::endl;
 
 //    for (int i = 0; i < 285; i++) {
 //        std::cout << sts::cardNames[i] << " " << sts::normalCardNames[i] << '\n';

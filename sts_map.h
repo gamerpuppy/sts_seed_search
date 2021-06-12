@@ -13,24 +13,21 @@
 namespace sts {
 
     enum class Room {
-        NONE,
-        EVENT,
-        MONSTER,
-        ELITE,
-        BURNING_ELITE,
+        SHOP=0,
         REST,
-        SHOP,
+        EVENT,
+        ELITE,
+        MONSTER,
         TREASURE,
+        NONE,
     };
 
     struct Edge {
-        int srcX = 0;
-        int srcY = -1;
         int dstX = 0;
         int dstY = 0;
 
         Edge() = default;
-        Edge(int srcX, int srcY, int dstX, int dstY) : srcX(srcX), srcY(srcY), dstX(dstX), dstY(dstY) {}
+        Edge(int dstX, int dstY) : dstX(dstX), dstY(dstY) {}
     };
 
 
@@ -45,7 +42,6 @@ namespace sts {
 
         Room room = Room::NONE;
 
-
         char getRoomSymbol() const;
 
         void addParent(MapNode *node);
@@ -57,13 +53,13 @@ namespace sts {
     };
 
     struct Map {
-        std::array<std::array<MapNode, 7>, 15> rooms;
+        std::array<std::array<MapNode, 7>, 15> nodes;
         MapNode &getNode(int x, int y);
 
         std::string toString(bool showRoomSymbols) const;
     };
 
-    void generateMap(Map &map, Random mapRng);
+    void generateMap(Map &map, Random &mapRng);
 
     void mapTest();
 

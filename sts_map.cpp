@@ -573,27 +573,37 @@ int getNextRoomIdxAccordingToRules(Map &map, MapNode node, Room *rooms, int room
     return -1;
 }
 
-void removeElement(Room *rooms, int idx, int size) {
-    for (int i = idx; i < size-1; ++i) {
-        rooms[i] = rooms[i+1];
+void removeElement(Room *rooms, int idx) {
+//    for (int i = idx; i < size-1; ++i) {
+//        rooms[i] = rooms[i+1];
+//    }
+    for (int i = idx; i > 0; --i) {
+        rooms[i] = rooms[i-1];
     }
 }
 
 
 // idea: remove rooms basically in reverse, shifting the head of the array forward instead
 void assignRoomsToNodes(Map &map, Room *rooms, int roomsSize) {
+
+    int curRoomSize = roomsSize;
+
     for (int row = 1; row < MAP_HEIGHT-1; ++row) {
         if (row == 8) {
             continue;
         }
+
         for (auto &node : map.nodes.at(row)) {
             if (node.edgeCount <= 0) {
                 continue;
             }
-            int roomIdx = getNextRoomIdxAccordingToRules(map, node, rooms, roomsSize);
+
+            Room *arr = &rooms[roomsSize-curRoomSize];
+            int roomIdx = getNextRoomIdxAccordingToRules(map, node, arr, curRoomSize);
             if (roomIdx != -1) {
                 node.room = rooms[roomIdx];
-                removeElement(rooms, roomIdx, roomsSize--);
+                removeElement(rooms, roomIdx);
+                --curRoomSize;
             } else {
 //                // this line replaces last minute node checker
 //                node.room = sts::Room::MONSTER;

@@ -143,6 +143,8 @@ int main(int argc, const char ** argv) {
 
     int eventCount = 0;
 //
+    int edgeCount = 0;
+
     for (std::int64_t x = 0; x < seedCount; ++x) {
         auto seed = seedStart + x;
 
@@ -150,7 +152,11 @@ int main(int argc, const char ** argv) {
         sts::Map map;
         sts::generateMap(map, mapRng);
 
-        if (map.getNode(0,11).room == sts::Room::EVENT) {
+        if (map.getNode(0,11).edgeCount == 2) {
+            edgeCount++;
+        }
+
+        if (map.getNode(5,13).room == sts::Room::EVENT) {
             ++eventCount;
         }
     }
@@ -162,8 +168,8 @@ int main(int argc, const char ** argv) {
 
     std::cout << seedCount/millis << " seeds/ms" << std::endl;
 
-
     std::cout << eventCount << std::endl;
+    std::cout << edgeCount << std::endl;
 
 
 

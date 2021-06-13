@@ -521,11 +521,10 @@ bool ruleParentMatches(MapNode node, Room roomToBeSet) {
 }
 
 
-int getNextRoomIdxAccordingToRules(Map &map, MapNode node, Room *rooms, int roomsSize) {
-
+int getNextRoomIdxAccordingToRules(Map &map, MapNode node, Room *rooms, int roomsSize, int offset) {
     bool triedAssignRoom[5] = { false };
 
-    for (int i = 0; i < roomsSize; i++) {
+    for (int i = offset; i < roomsSize; i++) {
         Room room = rooms[i];
 
         if (triedAssignRoom[(int)room]) {
@@ -573,11 +572,8 @@ int getNextRoomIdxAccordingToRules(Map &map, MapNode node, Room *rooms, int room
     return -1;
 }
 
-void removeElement(Room *rooms, int idx) {
-//    for (int i = idx; i < size-1; ++i) {
-//        rooms[i] = rooms[i+1];
-//    }
-    for (int i = idx; i > 0; --i) {
+void removeElement(Room *rooms, int roomsBegin, int idx) {
+    for (int i = idx; i > roomsBegin; --i) {
         rooms[i] = rooms[i-1];
     }
 }
@@ -585,9 +581,7 @@ void removeElement(Room *rooms, int idx) {
 
 // idea: remove rooms basically in reverse, shifting the head of the array forward instead
 void assignRoomsToNodes(Map &map, Room *rooms, int roomsSize) {
-
-    int curRoomSize = roomsSize;
-
+    int offset = 0;
     for (int row = 1; row < MAP_HEIGHT-1; ++row) {
         if (row == 8) {
             continue;
@@ -598,12 +592,11 @@ void assignRoomsToNodes(Map &map, Room *rooms, int roomsSize) {
                 continue;
             }
 
-            Room *arr = &rooms[roomsSize-curRoomSize];
-            int roomIdx = getNextRoomIdxAccordingToRules(map, node, arr, curRoomSize);
+            int roomIdx = getNextRoomIdxAccordingToRules(map, node, rooms, roomsSize, offset);
             if (roomIdx != -1) {
                 node.room = rooms[roomIdx];
-                removeElement(rooms, roomIdx);
-                --curRoomSize;
+                removeElement(rooms, offset, roomIdx);
+                ++offset;
             } else {
 //                // this line replaces last minute node checker
 //                node.room = sts::Room::MONSTER;
@@ -611,7 +604,6 @@ void assignRoomsToNodes(Map &map, Room *rooms, int roomsSize) {
         }
     }
 }
-
 
 // dont think this is necessary
 void lastMinuteNodeChecker(Map &map) {
@@ -625,7 +617,6 @@ void lastMinuteNodeChecker(Map &map) {
         }
     }
 }
-
 
 void assignRooms(Map &map, Random &rng) {
     RoomCounts counts = getRoomCountsAndAssignFixed(map);

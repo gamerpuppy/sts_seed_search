@@ -11,6 +11,8 @@
 
 #include "java_random.h"
 #include "seed_search_fast.h"
+#include "sts_map.h"
+
 
 using namespace sts;
 
@@ -155,7 +157,7 @@ void logSeed(std::int64_t seed) {
 inline bool testSeed(std::int64_t seed) {
     sts::fast::Random rand(seed);
 
-    const int cardPoolSizeMinusOne = Ironclad::cardPool.size()-1;
+    const int cardPoolSizeMinusOne = Defect::cardPool.size()-1;
 
     // 0
     auto num = rand.random(cardPoolSizeMinusOne);
@@ -188,10 +190,10 @@ inline bool testSeed(std::int64_t seed) {
 //    if (rand.random(70) != num) {
 //        return false;
 //    }
-    return testSeedForPandorasRelic(seed, CharacterClass::IRONCLAD);
+//    return testSeedForPandorasRelic(seed, CharacterClass::IRONCLAD);
 
-//    return testSeedForPandorasRelic(seed, CharacterClass::DEFECT)
-//        || testSeedForPandorasRelic(seed, CharacterClass::WATCHER);
+    return testSeedForPandorasRelic(seed, CharacterClass::DEFECT)
+        || testSeedForPandorasRelic(seed, CharacterClass::WATCHER);
 }
 
 void sts::test() {
@@ -315,24 +317,24 @@ void sts::describeSeeds(const std::vector<std::int64_t> seeds) {
     for (auto seed : seeds) {
         std::string seedStr = SeedHelper::getString(seed);
 
-        if (testSeedForPandorasRelic(seed, CharacterClass::IRONCLAD)) {
-            auto res = analyzePandorasBoxRewards(seed, CharacterClass::IRONCLAD);
-            std::cout << "Ironclad, " << seedStr << ", " << res.name << ", " << res.count << std::endl;
+//        if (testSeedForPandorasRelic(seed, CharacterClass::IRONCLAD)) {
+//            auto res = analyzePandorasBoxRewards(seed, CharacterClass::IRONCLAD);
+//            std::cout << "Ironclad, " << seedStr << ", " << res.name << ", " << res.count << std::endl;
+//        }
+
+
+        if (testSeedForPandorasRelic(seed, CharacterClass::DEFECT)) {
+            auto res = analyzePandorasBoxRewards(seed, CharacterClass::DEFECT);
+            std::cout << "Defect, " << seedStr << ", " << res.name << ", " << res.count << std::endl;
+
+            auto res2 = analyzePandorasBoxRewards(seed, CharacterClass::SILENT);
+            std::cout << "Silent, " << seedStr << ", " << res2.name << ", " << res2.count << std::endl;
         }
 
-
-//        if (testSeedForPandorasRelic(seed, CharacterClass::DEFECT)) {
-//            auto res = analyzePandorasBoxRewards(seed, CharacterClass::DEFECT);
-//            std::cout << "Defect, " << seedStr << ", " << res.name << ", " << res.count << std::endl;
-//
-//            auto res2 = analyzePandorasBoxRewards(seed, CharacterClass::SILENT);
-//            std::cout << "Silent, " << seedStr << ", " << res2.name << ", " << res2.count << std::endl;
-//        }
-//
-//        if (testSeedForPandorasRelic(seed, CharacterClass::WATCHER)) {
-//            auto res = analyzePandorasBoxRewards(seed, CharacterClass::WATCHER);
-//            std::cout << "Watcher, " <<  seedStr << ", " << res.name << ", " << res.count << std::endl;
-//        }
+        if (testSeedForPandorasRelic(seed, CharacterClass::WATCHER)) {
+            auto res = analyzePandorasBoxRewards(seed, CharacterClass::WATCHER);
+            std::cout << "Watcher, " <<  seedStr << ", " << res.name << ", " << res.count << std::endl;
+        }
     }
 
 

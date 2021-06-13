@@ -101,7 +101,7 @@ std::vector<sts::candidate> parseCandidates(std::string fName) {
 
 
 void runCandidateFilter() {
-    auto cs = parseCandidates("output5.txt");
+    auto cs = parseCandidates("output7.txt");
     auto res = sts::runSearch2(cs);
 
     std::sort(res.begin(), res.end());
@@ -131,18 +131,13 @@ void readAndDescribeSeeds(std::string fName) {
     sts::describeSeeds(seeds);
 }
 
-int main(int argc, const char ** argv) {
-
-//    sts::mapTest();
-
+void runMapBenchmark() {
     Timer timer;
     timer.start();
-
     std::int64_t seedStart = 5000000;
-    std::int64_t seedCount = (std::int64_t) 1e6;
+    std::int64_t seedCount = (std::int64_t) 5e5;
 
     int eventCount = 0;
-//
     int edgeCount = 0;
 
     for (std::int64_t x = 0; x < seedCount; ++x) {
@@ -165,11 +160,17 @@ int main(int argc, const char ** argv) {
     double millis = timer.elapsedMilliseconds();
 
     std::cout << timer.elapsedMilliseconds() << " ms" << std::endl;
-
     std::cout << seedCount/millis << " seeds/ms" << std::endl;
 
     std::cout << eventCount << std::endl;
     std::cout << edgeCount << std::endl;
+}
+
+
+int main(int argc, const char ** argv) {
+    runMapBenchmark();
+//    sts::mapTest();
+
 
 
 

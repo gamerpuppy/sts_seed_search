@@ -674,14 +674,16 @@ void normalizeMap(Map &map) {
             if (node.edgeCount == 0) {
                 break;
             }
-            int lastP = -1;
+            int count = 0;
+            bool haveSeen[MAP_WIDTH] = {false};
             for (int p = 0; p < node.parentCount; ++p) {
-//                if (node.parents[p] )
-
-                node.parents[p] = newIndices[r-1][node.parents[p]];
-//                lastP = node.parents[p];
-
+                int parent = node.parents[p];
+                if (!haveSeen[parent]) {
+                    node.parents[count++] = newIndices[r-1][parent];
+                    haveSeen[parent] = true;
+                }
             }
+            node.parentCount = count;
         }
     }
 }

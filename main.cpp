@@ -134,7 +134,7 @@ void readAndDescribeSeeds(std::string fName) {
 void runMapBenchmark() {
     Timer timer;
     timer.start();
-    std::int64_t seedStart = 5000000;
+    std::int64_t seedStart = 777777;
     std::int64_t seedCount = (std::int64_t) 5e5;
 
     int eventCount = 0;
@@ -147,10 +147,8 @@ void runMapBenchmark() {
         sts::Map map;
         sts::generateMap(map, mapRng);
 
-        if (map.getNode(0,11).edgeCount == 2) {
-            edgeCount++;
-        }
 
+        edgeCount += map.getNode(0,11).edgeCount;
         if (map.getNode(0,13).room == sts::Room::EVENT) {
             ++eventCount;
         }

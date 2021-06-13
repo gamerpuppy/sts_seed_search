@@ -33,11 +33,15 @@ MapNode &Map::getNode(int x, int y) {
     return nodes.at(y).at(x);
 }
 
+const MapNode &Map::getNode(int x, int y) const {
+    return nodes.at(y).at(x);
+}
+
 static inline int randRange(Random &rng, int min, int max) {
     return rng.random(max - min) + min;
 }
 
-void insertEdge(MapNode &mapNode, int dstX, int idx) {
+inline void insertEdge(MapNode &mapNode, int dstX, int idx) {
     for (int x = mapNode.edgeCount; x > idx; --x) {
         mapNode.edges[x] = mapNode.edges[x-1];
     }
@@ -59,26 +63,47 @@ char MapNode::getRoomSymbol() const {
     }
 }
 
+void MapNode::addParent(int parent) {
+    parents[parentCount++] = parent;
 
-void MapNode::addParent(int parentX) {
+    maxXParent == std::max(parent, maxXParent);
+    minXParent = std::min(parent, minXParent);
+
+//    if (parent > maxXParent) {
+//        maxXParent = parent;
+//    }
+//    if (parent < minXParent) {
+//        minXParent = parent;
+//    }
+
+//    lastParentAdded = parent;
+//    ++totalParentsAdded;
+//
 //    int cur = 0;
 //    while (true) {
-//        if (parentCount == cur) {
-//            parents[cur] = node;
-//            ++edgeCount;
+//        if (cur == parentCount) {
+//            parents[cur] = parent;
+//            ++parentCount;
 //            return;
 //        }
-//        bool res = compareEdges(edge, edges[cur]);
-//        if (!res) {
-//            insertEdge(*this, edge, cur);
+//
+//        if (parent == parents[cur]) {
+//            return;
+//        }
+//
+//        if (parent < parents[cur]) {
+//            for (int i = parentCount; i > cur; --i) {
+//                parents[i] = parents[i-1];
+//            }
+//            parents[cur] = parent;
+//            ++parentCount;
 //            return;
 //        }
 //        ++cur;
 //    }
-    parents[parentCount++] = parentX;
 }
 
-void MapNode::addEdge(int edge) {
+inline void MapNode::addEdge(int edge) {
     int cur = 0;
     while (true) {
         if (cur == edgeCount) {
@@ -99,38 +124,40 @@ void MapNode::addEdge(int edge) {
     }
 }
 
-int &MapNode::getMaxEdge() {
+inline int MapNode::getMaxEdge() const {
 //    assert(edgeCount > 0);
     return edges.at(edgeCount-1);
 }
 
-int &MapNode::getMinEdge() {
+inline int MapNode::getMinEdge() const {
 //    assert(edgeCount > 0);
     return edges.at(0);
 }
 
-int MapNode::getMaxXParent() const {
+inline int MapNode::getMaxXParent() const {
 //    assert(parentCount > 0);
+    return maxXParent;
 
-    int maxParent = parents[0];
-    for (int i = 1; i < parentCount; i++) {
-        if (parents[i] > maxParent) {
-            maxParent = parents[i];
-        }
-    }
-    return maxParent;
+//    int maxParent = parents[0];
+//    for (int i = 1; i < parentCount; i++) {
+//        if (parents[i] > maxParent) {
+//            maxParent = parents[i];
+//        }
+//    }
+//    return maxParent;
 }
 
-int MapNode::getMinXParent() const {
+inline int MapNode::getMinXParent() const {
 //    assert(parentCount > 0);
+    return minXParent;
 
-    int minParent = parents[0];
-    for (int i = 1; i < parentCount; i++) {
-        if (parents[i] < minParent) {
-            minParent = parents[i];
-        }
-    }
-    return minParent;
+//    int minParent = parents[0];
+//    for (int i = 1; i < parentCount; i++) {
+//        if (parents[i] < minParent) {
+//            minParent = parents[i];
+//        }
+//    }
+//    return minParent;
 }
 
 void removeEdge(MapNode &node, int idx) {
@@ -170,91 +197,107 @@ void filterRedundantEdgesFromFirstRow(Map &map) {
     }
 }
 
-int getCommonAncestor(const MapNode &node1, const MapNode &node2) {
-//    assert(node1.y == node2.y);
-//    assert(&node1 != &node2);
+inline int getCommonAncestor(const Map &map, int x1, int x2, int y) {
+    if (y < 0) {
+        return -1;
+    }
 
-    const MapNode *l_node;
-    const MapNode *r_node;
-    if (node1.x < node2.y) {
-        l_node = &node1;
-        r_node = &node2;
+    int l_node;
+    int r_node;
+    if (x1 < y) {
+        l_node = x1;
+        r_node = x2;
     } else {
-        l_node = &node2;
-        r_node = &node1;
+        l_node = x2;
+        r_node = x1;
     }
 
-    int current_y = node1.y;
-
-    if (!(current_y >= 0 && current_y >= node1.y - MAX_ANCESTOR_GAP)) {
-        return -1;
-    }
-    if (l_node->parentCount == 0 || r_node->parentCount == 0) {
+    if (map.getNode(l_node, y).parentCount == 0 || map.getNode(r_node, y).parentCount == 0) {
         return -1;
     }
 
-    int leftX = l_node->getMaxXParent();
-    int rightX = r_node->getMinXParent();
-
-    if (leftX == rightX) {
+    int leftX = map.getNode(l_node, y).getMaxXParent();
+    if (leftX == map.getNode(r_node, y).getMinXParent()) {
         return leftX;
     }
     return -1;
 }
 
 
-void _createPathsHelper(Map &map, Random &rng, MapNode &currentNode, MapNode* &targetNodeCandidate, MapNode &parent, int edgeDstX, int &newEdgeX, int &newEdgeY) {
-    if (&parent == &currentNode) {
-        return;
-    }
-
-    int ancestorX = getCommonAncestor(parent, currentNode);
-    if (ancestorX == -1) {
-        return;
-    }
-
-    if (targetNodeCandidate->x > currentNode.x) {
-        newEdgeX = edgeDstX + randRange(rng, -1, 0);
-        if (newEdgeX < 0) {
-            newEdgeX = edgeDstX;
+inline int createPathsGetChangedNewX1LoopHelper(const Map &map, Random &rng, int curX, int newX) {
+    if (newX > curX) {
+        newX = curX + randRange(rng, -1, 0);
+        if (newX < 0) {
+            newX = curX;
         }
-    } else if (targetNodeCandidate->x == currentNode.x) {
-        newEdgeX = edgeDstX + randRange(rng, -1, 1);
-        if (newEdgeX > ROW_END_NODE) {
-            newEdgeX = edgeDstX - 1;
-        } else if (newEdgeX < 0) {
-            newEdgeX = edgeDstX + 1;
+    } else if (newX == curX) {
+        newX = curX + randRange(rng, -1, 1);
+        if (newX > ROW_END_NODE) {
+            newX = curX - 1;
+        } else if (newX < 0) {
+            newX = curX + 1;
         }
     } else {
-        newEdgeX = edgeDstX + randRange(rng, 0, 1);
-        if (newEdgeX > ROW_END_NODE) {
-            newEdgeX = edgeDstX;
+        newX = curX + randRange(rng, 0, 1);
+        if (newX > ROW_END_NODE) {
+            newX = curX;
+        }
+    }
+    return newX;
+}
+
+inline int choosePathParentLoopRandomizer(const Map &map, Random &rng, int curX, int curY, int newX) {
+
+    const MapNode &newEdgeDest = map.getNode(newX, curY + 1);
+    int targetX = newX;
+
+    for (int i = 0; i < newEdgeDest.parentCount; i++) {
+        int parentX = newEdgeDest.parents.at(i);
+        if (curX == parentX) {
+            continue;
+        }
+        if (getCommonAncestor(map, parentX, curX, curY) == -1) {
+            continue;
+        }
+        targetX = createPathsGetChangedNewX1LoopHelper(map, rng, curX, targetX);
+    }
+
+    return targetX;
+}
+
+inline int choosePathAdjustNewX(const Map &map, int curX, int curY, int newEdgeX) {
+    if (curX != 0) {
+        auto right_node = map.getNode(curX - 1, curY);
+        if (right_node.edgeCount > 0) {
+            int left_edge_of_right_node = right_node.getMaxEdge();
+            if (left_edge_of_right_node > newEdgeX) {
+                newEdgeX = left_edge_of_right_node;
+            }
         }
     }
 
-    targetNodeCandidate = &map.getNode(newEdgeX, newEdgeY);
+    if (curX < ROW_END_NODE) {
+        auto right_node = map.getNode(curX + 1, curY);
+        if (right_node.edgeCount > 0) {
+            int left_edge_of_right_node = right_node.getMinEdge();
+            if (left_edge_of_right_node < newEdgeX) {
+                newEdgeX = left_edge_of_right_node;
+            }
+        }
+    }
+    return newEdgeX;
 }
 
 
-long totalSameParents = 0;
-
-
-void _createPaths(Map &map, Random &rng, int edgeX, int edgeY) {
-    MapNode &currentNode = map.getNode(edgeX, edgeY);
-
-    if (edgeY + 1 >= MAP_HEIGHT) {
-        currentNode.addEdge(3);
-        return;
-
-    }
+int chooseNewPath(Map &map, Random &rng, int curX, int curY) {
+    MapNode &currentNode = map.getNode(curX, curY);
 
     int min;
     int max;
-
-    if (edgeX== 0) {
+    if (curX == 0) {
         min = 0;
         max = 1;
-    } else if (edgeX == ROW_END_NODE) {
+    } else if (curX == ROW_END_NODE) {
         min = -1;
         max = 0;
     } else {
@@ -262,75 +305,40 @@ void _createPaths(Map &map, Random &rng, int edgeX, int edgeY) {
         max = 1;
     }
 
-    int newEdgeX = edgeX + randRange(rng, min, max);
-    int newEdgeY = edgeY + 1;
-    MapNode *targetNodeCandidate = &map.getNode(newEdgeX, newEdgeY);
+    int newEdgeX = curX + randRange(rng, min, max);
+    newEdgeX = choosePathParentLoopRandomizer(map, rng, curX, curY, newEdgeX);
+    newEdgeX = choosePathAdjustNewX(map, curX, curY, newEdgeX);
 
-//    ArrayList<MapRoomNode> parents = targetNodeCandidate.getParents();
+   return newEdgeX;
+}
 
-    const int parentCount = targetNodeCandidate->parentCount;
-    std::array<int, 6> *parents = &targetNodeCandidate->parents;
+void createPathsRecursive(Map &map, int curX, int curY, int newEdgeX) {
 
+}
 
-    bool haveSeen[MAP_WIDTH] = {false};
-    for (int i = 0; i < parentCount; i++) {
-        int parentX = parents->at(i);
-        if (haveSeen[parentX]) {
-            totalSameParents++;
-        }
-        haveSeen[parentX] = true;
-
-        _createPathsHelper(map, rng, currentNode, targetNodeCandidate, map.getNode(parents->at(i), edgeY), edgeX, newEdgeX, newEdgeY);
+void createPathsIteration(Map &map, Random &rng, int startX) {
+    int curX = startX;
+    for (int curY = 0; curY < MAP_HEIGHT-1; ++curY) {
+        int newX = chooseNewPath(map, rng, curX, curY);
+        map.getNode(curX, curY).addEdge(newX);
+        map.getNode(newX, curY+1).addParent(curX);
+        curX = newX;
     }
-
-    // todo organize these ifs better
-    MapNode *right_node;
-    int left_edge_of_right_node;
-    if (edgeX != 0) {
-//        right_node = (MapRoomNode)((ArrayList)nodes.get(edge.dstY)).get(edge.dstX - 1);
-        right_node = &map.getNode(edgeX-1, edgeY);
-
-        if (right_node->edgeCount > 0) {
-            left_edge_of_right_node = right_node->getMaxEdge();
-            if (left_edge_of_right_node > newEdgeX) {
-                newEdgeX = left_edge_of_right_node;
-            }
-        }
-    }
-
-    if (edgeX < ROW_END_NODE) {
-        right_node = &map.getNode(edgeX+1, edgeY);
-        if (right_node->edgeCount > 0) {
-            left_edge_of_right_node = right_node->getMinEdge();
-            if (left_edge_of_right_node < newEdgeX) {
-                newEdgeX = left_edge_of_right_node;
-            }
-        }
-    }
-
-
-//    targetNodeCandidate.addParent(currentNode);
-//    return _createPaths(nodes, newEdge, rng);
-
-    currentNode.addEdge(newEdgeX);
-    map.getNode(newEdgeX, newEdgeY).addParent(currentNode.x);
-
-    _createPaths(map, rng, newEdgeX, newEdgeY);
+    map.getNode(curX, 14).addEdge(3);
 }
 
 void createPaths(Map &map, Random &mapRng) {
-    int firstStartingNode = -1;
-    for(int i = 0; i < PATH_DENSITY; ++i) {
-        int startingNode = randRange(mapRng, 0, MAP_WIDTH-1);
-        if (i == 0) {
-            firstStartingNode = startingNode;
+    int firstStartX = randRange(mapRng, 0, MAP_WIDTH - 1);
+    createPathsIteration(map, mapRng, firstStartX);
+
+    for(int i = 1; i < PATH_DENSITY; ++i) {
+        int startX = randRange(mapRng, 0, MAP_WIDTH - 1);
+
+        while(startX == firstStartX && i == 1) {
+            startX = randRange(mapRng, 0, MAP_WIDTH - 1);
         }
 
-        while(startingNode == firstStartingNode && i == 1) {
-            startingNode = randRange(mapRng, 0, MAP_WIDTH-1);
-        }
-
-        _createPaths(map, mapRng, startingNode, 0);
+        createPathsIteration(map, mapRng, startX);
     }
 }
 
@@ -417,7 +425,7 @@ RoomCounts  getRoomCountsAndAssignFixed(Map &map) {
 
         for (auto &node : map.nodes.at(row)) {
             if (node.edgeCount <= 0) {
-                break;
+                continue;
             }
 
             switch (row) {
@@ -590,7 +598,7 @@ void assignRoomsToNodes(Map &map, Room *rooms, int roomsSize) {
         bool skipNextMonsterChecks = false;
         for (auto &node : map.nodes.at(row)) {
             if (node.edgeCount <= 0) {
-                break;
+                continue;
             }
 
             int roomIdx = getNextRoomIdxAccordingToRules(map, node, rooms, roomsSize, offset, skipNextMonsterChecks);
@@ -693,12 +701,11 @@ void sts::generateMap(Map &map, sts::Random &mapRng) {
     createPaths(map, mapRng);
     assert(map.getNode(5,1).edgeCount < 5);
     filterRedundantEdgesFromFirstRow(map);
-    normalizeMap(map);
     assignRooms(map, mapRng);
 }
 
 void sts::printStats() {
-    std::cout << "total same parents " << totalSameParents << std::endl;
+//    std::cout << "total same parents " << totalSameParents << std::endl;
 }
 
 void sts::mapTest() {

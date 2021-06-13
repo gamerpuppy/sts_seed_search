@@ -27,18 +27,20 @@ namespace sts {
         int y;
         int parentCount = 0;
         std::array<int, 6> parents;
+        int maxXParent = -1;
+        int minXParent = 0x7FFFFFFF;
+
         int edgeCount = 0;
         std::array<int, 3> edges;
 
         Room room = Room::NONE;
 
-        char getRoomSymbol() const;
-
-        void addParent(int parentX);
+        void addParent(int parent);
         void addEdge(int edge);
 
-        int &getMaxEdge();
-        int &getMinEdge();
+        char getRoomSymbol() const;
+        int getMaxEdge() const;
+        int getMinEdge() const;
         int getMaxXParent() const;
         int getMinXParent() const;
     };
@@ -46,6 +48,8 @@ namespace sts {
     struct Map {
         std::array<std::array<MapNode, 7>, 15> nodes;
         MapNode &getNode(int x, int y);
+        const MapNode &getNode(int x, int y) const;
+
 
         std::string toString(bool showRoomSymbols) const;
     };

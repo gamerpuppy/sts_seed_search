@@ -168,7 +168,11 @@ void runMapBenchmark() {
 
 
 int main(int argc, const char ** argv) {
-    runMapBenchmark();
+
+    std::cout << sizeof(sts::MapNode) << std::endl;
+    std::cout << sizeof(sts::Map) << std::endl;
+
+//    runMapBenchmark();
 //    sts::mapTest();
 
 

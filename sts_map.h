@@ -22,34 +22,25 @@ namespace sts {
         NONE,
     };
 
-    struct Edge {
-        int dstX = 0;
-        int dstY = 0;
-
-        Edge() = default;
-        Edge(int dstX, int dstY) : dstX(dstX), dstY(dstY) {}
-    };
-
-
-
     struct MapNode {
         int x;
         int y;
         int parentCount = 0;
-        std::array<MapNode*, 6> parents;
+        std::array<int, 6> parents;
         int edgeCount = 0;
-        std::array<Edge, 3> edges;
+        std::array<int, 3> edges;
 
         Room room = Room::NONE;
 
         char getRoomSymbol() const;
 
-        void addParent(MapNode *node);
-        void addEdge(Edge edge);
-        Edge &getMaxEdge();
-        Edge &getMinEdge();
-        MapNode *getMaxXParent();
-        MapNode *getMinXParent();
+        void addParent(int parentX);
+        void addEdge(int edge);
+
+        int &getMaxEdge();
+        int &getMinEdge();
+        int getMaxXParent() const;
+        int getMinXParent() const;
     };
 
     struct Map {

@@ -81,7 +81,7 @@ void MapNode::addParent(int parentX) {
 void MapNode::addEdge(int edge) {
     int cur = 0;
     while (true) {
-        if (edgeCount == cur) {
+        if (cur == edgeCount) {
             edges[cur] = edge;
             ++edgeCount;
             return;
@@ -140,12 +140,28 @@ void removeEdge(MapNode &node, int idx) {
     --node.edgeCount;
 }
 
+void removeParentAtIdx(MapNode &node, int parentIdx) {
+    for (int i = parentIdx; i < node.parentCount-1; ++i) {
+        node.parents[i] = node.parents[i+1];
+    }
+    --node.parentCount;
+}
+
+void removeParent(MapNode &node, int parent) {
+    for (int i = node.parentCount-1; i >= 0; --i) {
+        if (node.parents[i] == parent) {
+            removeParentAtIdx(node, i);
+        }
+    }
+}
+
 void filterRedundantEdgesFromFirstRow(Map &map) {
     bool nodesVisited[MAP_WIDTH] = {false};
     for (auto &node : map.nodes.at(0)) {
         for (int i = node.edgeCount-1; i >= 0 ; --i) {
             int x = node.edges[i];
             if (nodesVisited[x]) {
+                removeParent(map.getNode(x, 1), node.x);
                 removeEdge(node, i);
             } else {
                 nodesVisited[x] = true;
@@ -220,6 +236,9 @@ void _createPathsHelper(Map &map, Random &rng, MapNode &currentNode, MapNode* &t
 }
 
 
+long totalSameParents = 0;
+
+
 void _createPaths(Map &map, Random &rng, int edgeX, int edgeY) {
     MapNode &currentNode = map.getNode(edgeX, edgeY);
 
@@ -252,7 +271,15 @@ void _createPaths(Map &map, Random &rng, int edgeX, int edgeY) {
     const int parentCount = targetNodeCandidate->parentCount;
     std::array<int, 6> *parents = &targetNodeCandidate->parents;
 
+
+    bool haveSeen[MAP_WIDTH] = {false};
     for (int i = 0; i < parentCount; i++) {
+        int parentX = parents->at(i);
+        if (haveSeen[parentX]) {
+            totalSameParents++;
+        }
+        haveSeen[parentX] = true;
+
         _createPathsHelper(map, rng, currentNode, targetNodeCandidate, map.getNode(parents->at(i), edgeY), edgeX, newEdgeX, newEdgeY);
     }
 
@@ -378,7 +405,7 @@ struct RoomCounts {
     int unassigned = 0;
 };
 
-RoomCounts getRoomCountsAndAssignFixed(Map &map) {
+RoomCounts  getRoomCountsAndAssignFixed(Map &map) {
     const int monsterRow = 0;
     const int treasureRow = 8;
 
@@ -390,7 +417,7 @@ RoomCounts getRoomCountsAndAssignFixed(Map &map) {
 
         for (auto &node : map.nodes.at(row)) {
             if (node.edgeCount <= 0) {
-                continue;
+                break;
             }
 
             switch (row) {
@@ -563,7 +590,7 @@ void assignRoomsToNodes(Map &map, Room *rooms, int roomsSize) {
         bool skipNextMonsterChecks = false;
         for (auto &node : map.nodes.at(row)) {
             if (node.edgeCount <= 0) {
-                continue;
+                break;
             }
 
             int roomIdx = getNextRoomIdxAccordingToRules(map, node, rooms, roomsSize, offset, skipNextMonsterChecks);
@@ -575,19 +602,6 @@ void assignRoomsToNodes(Map &map, Room *rooms, int roomsSize) {
 //                // this line replaces last minute node checker
                 node.room = sts::Room::MONSTER;
                 skipNextMonsterChecks = true;
-            }
-        }
-    }
-}
-
-// dont think this is necessary
-void lastMinuteNodeChecker(Map &map) {
-    for (int rowIdx = 1; rowIdx < MAP_HEIGHT-1; ++rowIdx) {
-        auto &row = map.nodes.at(rowIdx);
-
-        for (auto &node : row) {
-            if (node.edgeCount > 0 && node.room == sts::Room::NONE) {
-                node.room = sts::Room::MONSTER;
             }
         }
     }
@@ -620,6 +634,8 @@ void initNodes(Map &map) {
 
 void normalizeMap(Map &map) {
     int newIndices[MAP_HEIGHT][MAP_WIDTH];
+
+    Map copy = map;
 
     for (int r = MAP_HEIGHT-1; r >= 0; --r) {
         std::array<MapNode, MAP_WIDTH> &row = map.nodes.at(r);
@@ -658,19 +674,29 @@ void normalizeMap(Map &map) {
             if (node.edgeCount == 0) {
                 break;
             }
+            int lastP = -1;
             for (int p = 0; p < node.parentCount; ++p) {
-                node.parents[p] = newIndices[r-1][p];
+//                if (node.parents[p] )
+
+                node.parents[p] = newIndices[r-1][node.parents[p]];
+//                lastP = node.parents[p];
+
             }
         }
     }
-
 }
 
 void sts::generateMap(Map &map, sts::Random &mapRng) {
     initNodes(map);
     createPaths(map, mapRng);
+    assert(map.getNode(5,1).edgeCount < 5);
     filterRedundantEdgesFromFirstRow(map);
+    normalizeMap(map);
     assignRooms(map, mapRng);
+}
+
+void sts::printStats() {
+    std::cout << "total same parents " << totalSameParents << std::endl;
 }
 
 void sts::mapTest() {
@@ -678,18 +704,14 @@ void sts::mapTest() {
 //        sts::Map map;
 //        sts::generateMap(map, sts::Random(seed+1));
 //    }
-    std::int64_t seed = 8;
+
+    std::int64_t seed =     5000000+1527;
+//    std::int64_t seed = 8;
     sts::Random mapRng(seed+1);
     sts::Map map;
     sts::generateMap(map, mapRng);
-
-
-
     std::cout << map.toString(true) << std::endl;
 
-    Map normalizedMap = map;
-    normalizeMap(normalizedMap);
 
-    std::cout << normalizedMap.toString(true);
 }
 

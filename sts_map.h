@@ -54,6 +54,8 @@ namespace sts {
 
     void mapTest();
 
+    void printStats();
+
 }
 
 

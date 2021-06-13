@@ -151,7 +151,7 @@ void runMapBenchmark() {
             edgeCount++;
         }
 
-        if (map.getNode(5,13).room == sts::Room::EVENT) {
+        if (map.getNode(0,13).room == sts::Room::EVENT) {
             ++eventCount;
         }
     }
@@ -169,11 +169,15 @@ void runMapBenchmark() {
 
 int main(int argc, const char ** argv) {
 
-    std::cout << sizeof(sts::MapNode) << std::endl;
-    std::cout << sizeof(sts::Map) << std::endl;
+//    std::cout << sizeof(sts::MapNode) << std::endl;
+//    std::cout << sizeof(sts::Map) << std::endl;
 
-//    runMapBenchmark();
+    runMapBenchmark();
+
+    sts::printStats();
 //    sts::mapTest();
+
+//    std::cout << sts::SeedHelper::getString(5000000+1527);
 
 
 

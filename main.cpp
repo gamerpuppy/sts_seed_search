@@ -166,20 +166,21 @@ void findSinglePathSeeds() {
     Timer timer;
     timer.start();
 
-    std::int64_t seedStart = 35125612677LL;
-    std::int64_t seedCount = (std::int64_t) (std::int64_t)1e8;
+    std::int64_t seedStart = 4280033201LL;
+    std::int64_t seedCount = (std::int64_t)1e12;
+    std::cout << "start: " << seedStart << " count: " << seedCount << std::endl;
 
     auto res = sts::findSinglePathSeedsMt(seedStart, seedCount, 16, 4);
 
-    for (auto x : res) {
-        std::cout << x << "\n";
-    }
+//    for (auto x : res) {
+//        std::cout << sts::SeedHelper::getString(x) << "\n";
+//    }
 
     double millis = timer.elapsedMilliseconds();
 
+    std::cout << res.size() << " found" << std::endl;
     std::cout << millis << " ms" << std::endl;
     std::cout << seedCount/millis << " seeds/ms" << std::endl;
-
 }
 
 

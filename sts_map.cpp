@@ -66,41 +66,10 @@ char MapNode::getRoomSymbol() const {
 void MapNode::addParent(int parent) {
     parents[parentCount++] = parent;
 
+#ifndef SINGLE_PATH
     maxXParent = std::max(parent, maxXParent);
     minXParent = std::min(parent, minXParent);
-
-//    if (parent > maxXParent) {
-//        maxXParent = parent;
-//    }
-//    if (parent < minXParent) {
-//        minXParent = parent;
-//    }
-
-//    lastParentAdded = parent;
-//    ++totalParentsAdded;
-//
-//    int cur = 0;
-//    while (true) {
-//        if (cur == parentCount) {
-//            parents[cur] = parent;
-//            ++parentCount;
-//            return;
-//        }
-//
-//        if (parent == parents[cur]) {
-//            return;
-//        }
-//
-//        if (parent < parents[cur]) {
-//            for (int i = parentCount; i > cur; --i) {
-//                parents[i] = parents[i-1];
-//            }
-//            parents[cur] = parent;
-//            ++parentCount;
-//            return;
-//        }
-//        ++cur;
-//    }
+#endif
 }
 
 inline void MapNode::addEdge(int edge) {
@@ -135,29 +104,33 @@ inline int MapNode::getMinEdge() const {
 }
 
 inline int MapNode::getMaxXParent() const {
-//    assert(parentCount > 0);
+#ifdef SINGLE_PATH
+    int maxParent = parents[0];
+    for (int i = 1; i < parentCount; i++) {
+        if (parents[i] > maxParent) {
+            maxParent = parents[i];
+        }
+    }
+    return maxParent;
+#else
     return maxXParent;
+#endif
 
-//    int maxParent = parents[0];
-//    for (int i = 1; i < parentCount; i++) {
-//        if (parents[i] > maxParent) {
-//            maxParent = parents[i];
-//        }
-//    }
-//    return maxParent;
+
 }
 
 inline int MapNode::getMinXParent() const {
-//    assert(parentCount > 0);
+#ifdef SINGLE_PATH
+    int minParent = parents[0];
+    for (int i = 1; i < parentCount; i++) {
+        if (parents[i] < minParent) {
+            minParent = parents[i];
+        }
+    }
+    return minParent;
+#else
     return minXParent;
-
-//    int minParent = parents[0];
-//    for (int i = 1; i < parentCount; i++) {
-//        if (parents[i] < minParent) {
-//            minParent = parents[i];
-//        }
-//    }
-//    return minParent;
+#endif
 }
 
 void removeEdge(MapNode &node, int idx) {
@@ -403,7 +376,7 @@ struct RoomCounts {
     int unassigned = 0;
 };
 
-RoomCounts  getRoomCountsAndAssignFixed(Map &map) {
+RoomCounts getRoomCountsAndAssignFixed(Map &map) {
     const int monsterRow = 0;
     const int treasureRow = 8;
 
@@ -834,33 +807,10 @@ void createSinglePathTestFirstIteration(Map &map, Random &rng, int startX) {
     map.getNode(curX, 14).addEdge(3);
 }
 
-
-inline int chooseNewSinglePathTest(Map &map, Random &rng, int curX, int curY) {
-    MapNode &currentNode = map.getNode(curX, curY);
-
-    int min;
-    int max;
-    if (curX == 0) {
-        min = 0;
-        max = 1;
-    } else if (curX == ROW_END_NODE) {
-        min = -1;
-        max = 0;
-    } else {
-        min = -1;
-        max = 1;
-    }
-
-    int newEdgeX = curX + randRange(rng, min, max);
-    newEdgeX = choosePathParentLoopRandomizer(map, rng, curX, curY, newEdgeX);
-    return newEdgeX;
-}
-
 bool createSinglePathTestIteration(Map &map, Random &rng, int startX, int length) {
     int curX = startX;
     for (int curY = 0; curY < MAP_HEIGHT-1; ++curY) {
-        int newX = chooseNewSinglePathTest(map, rng, curX, curY);
-
+        int newX = chooseNewPath(map, rng, curX, curY);
 
         auto &nextNode = map.getNode(newX, curY+1);
         if (curY < length && nextNode.parentCount == 0) {

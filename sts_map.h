@@ -10,6 +10,8 @@
 #include <string>
 #include <iostream>
 
+//#define SINGLE_PATH
+
 namespace sts {
 
     enum class Room {
@@ -27,13 +29,18 @@ namespace sts {
         int y;
         int parentCount = 0;
         std::array<int, 6> parents;
+        int edgeCount = 0;
+
+#ifdef SINGLE_PATH
+        std::array<int, 1> edges;
+        Room room;
+#else
         int maxXParent = -1;
         int minXParent = 0x7FFFFFFF;
-
-        int edgeCount = 0;
         std::array<int, 3> edges;
-
         Room room = Room::NONE;
+#endif
+
 
         void addParent(int parent);
         void addEdge(int edge);

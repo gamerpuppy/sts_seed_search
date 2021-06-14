@@ -101,13 +101,11 @@ std::vector<sts::candidate> parseCandidates(std::string fName) {
 
 
 void runCandidateFilter() {
-    auto cs = parseCandidates("output7.txt");
+    auto cs = parseCandidates("candidates-8.txt");
     auto res = sts::runSearch2(cs);
 
     std::sort(res.begin(), res.end());
-
     sts::describeSeeds(res);
-
 }
 
 void runNormalSearch() {
@@ -118,7 +116,6 @@ void runNormalSearch() {
     std::cin >> config.threads;
     std::cout << "Enter -1 (for random start) or the seed to start start search at." << std::endl;
     std::cin >> config.startSeed;
-//
 }
 
 void readAndDescribeSeeds(std::string fName) {
@@ -154,7 +151,6 @@ void runMapBenchmark() {
         }
     }
 
-
     double millis = timer.elapsedMilliseconds();
 
     std::cout << timer.elapsedMilliseconds() << " ms" << std::endl;
@@ -165,19 +161,43 @@ void runMapBenchmark() {
 }
 
 
-int main(int argc, const char ** argv) {
 
+void findSinglePathSeeds() {
+    Timer timer;
+    timer.start();
+
+    std::int64_t seedStart = 35125612677LL;
+    std::int64_t seedCount = (std::int64_t) (std::int64_t)1e8;
+
+    auto res = sts::findSinglePathSeedsMt(seedStart, seedCount, 16, 4);
+
+    for (auto x : res) {
+        std::cout << x << "\n";
+    }
+
+    double millis = timer.elapsedMilliseconds();
+
+    std::cout << millis << " ms" << std::endl;
+    std::cout << seedCount/millis << " seeds/ms" << std::endl;
+
+}
+
+
+int main(int argc, const char ** argv) {
+//
 //    std::cout << sizeof(sts::MapNode) << std::endl;
 //    std::cout << sizeof(sts::Map) << std::endl;
 
-    runMapBenchmark();
+//    runMapBenchmark();
 
-    sts::printStats();
+//    sts::printStats();
 //    sts::mapTest();
 
 //    std::cout << sts::SeedHelper::getString(5000000+1527);
 
+//    sts::findSinglePathSeeds(223125166216516LL, (std::int64_t)1e9, 4);
 
+    findSinglePathSeeds();
 
 
 //    for (int i = 0; i < 285; i++) {

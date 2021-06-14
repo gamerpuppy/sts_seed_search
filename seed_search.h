@@ -54,6 +54,7 @@ namespace sts {
 
 
 
+    std::vector<std::int64_t> findSinglePathSeedsMt(std::int64_t start, std::int64_t count, int threadCount, int length);
 
 
 

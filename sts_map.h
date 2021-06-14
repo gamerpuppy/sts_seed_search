@@ -60,6 +60,10 @@ namespace sts {
 
     void printStats();
 
+    bool testSeedForSinglePath(std::int64_t seed, int length);
+
+    std::vector<std::int64_t> findSinglePathSeeds(std::int64_t start, std::int64_t count, int length);
+
 }
 
 

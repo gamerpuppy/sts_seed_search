@@ -340,26 +340,34 @@ void sts::describeSeeds(const std::vector<std::int64_t> seeds) {
 
 }
 
+void findSinglePathSeedsMtHelper(ThreadData data, int length) {
+    for (std::int64_t seed = data.startSeed; seed < data.endSeed; seed += data.threadCount) {
+        if (testSeedForSinglePath(seed, length)) {
+            std::cout << SeedHelper::getString(seed) << std::endl;
+            data.foundVec->push_back(seed);
+        }
+    }
+}
 
+std::vector<std::int64_t> sts::findSinglePathSeedsMt(std::int64_t start, std::int64_t count, int threadCount, int length) {
+    std::thread *threads[threadCount];
+    std::vector<std::int64_t> results[threadCount];
 
+    for (int tid = 0; tid < threadCount; ++tid) {
+        ThreadData data(start, start+count, threadCount, tid, &results[tid]);
+        threads[tid] = new std::thread(findSinglePathSeedsMtHelper, data, length);
+    }
 
+    std::vector<std::int64_t> combined;
+    for (int tid = 0; tid < threadCount; ++tid) {
+        threads[tid]->join();
+        combined.insert(combined.end(), results[tid].begin(), results[tid].end());
+        delete threads[tid];
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    std::sort(combined.begin(), combined.end());
+    return combined;
+}
 
 
 

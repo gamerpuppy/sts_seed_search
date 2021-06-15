@@ -24,7 +24,8 @@ constexpr float REST_ROOM_CHANCE = 0.12F;
 constexpr float TREASURE_ROOM_CHANCE = 0.0f;
 constexpr float EVENT_ROOM_CHANCE = 0.22f;
 
-constexpr float ELITE_ROOM_CHANCE = 0.08f;
+//constexpr float ELITE_ROOM_CHANCE = 0.08f;
+constexpr float ELITE_ROOM_CHANCE = 0.08*1.6f;
 //constexpr float ELITE_ROOM_CHANCE_A0 = 0.08f;
 //constexpr float ELITE_ROOM_CHANCE_A1 = ELITE_ROOM_CHANCE_A0 * 1.6f;
 
@@ -276,7 +277,10 @@ int chooseNewPath(Map &map, Random &rng, int curX, int curY) {
     newEdgeX = choosePathParentLoopRandomizer(map, rng, curX, curY, newEdgeX);
     newEdgeX = choosePathAdjustNewX(map, curX, curY, newEdgeX);
 
-   return newEdgeX;
+    return newEdgeX;
+
+
+
 }
 
 void createPathsIteration(Map &map, Random &rng, int startX) {
@@ -748,32 +752,6 @@ void sts::printStats() {
 //    std::cout << "total same parents " << totalSameParents << std::endl;
 }
 
-void sts::mapTest() {
-//    for (std::int64_t seed = 0; seed < 10000; seed++) {
-//        sts::Map map;
-//        sts::generateMap(map, sts::Random(seed+1));
-//    }
-
-    std::int64_t seed =     273;
-//    std::int64_t seed = 8;
-    sts::Random mapRng(seed+1);
-    sts::Map map;
-    sts::generateMap(map, mapRng);
-    std::cout << map.toString(true) << std::endl;
-
-
-
-//    for (std::int64_t seed = 1; seed < 1000; seed++) {
-//        sts::Random mapRng(seed+1);
-//        sts::Map map;
-//        sts::generateMap(map, mapRng);
-//        std::cout << (map.getNode(0,13).room == Room::EVENT ? 1 : 0) << std::endl;
-////        std::cout << seed << std::endl;
-////        std::cout << map.toString(true) << std::endl;
-//    }
-
-
-}
 
 
 int chooseNewPathFirstTest(Map &map, Random &rng, int curX, int curY) {
@@ -863,3 +841,128 @@ std::vector<std::int64_t> sts::findSinglePathSeeds(std::int64_t start, std::int6
     }
     return ret;
 }
+
+int sts::getPathSingleLength(std::int64_t seed) {
+    Map map;
+    Random random(seed+1);
+    generateMap(map, random);
+
+
+    for (int row = 1; row < MAP_HEIGHT; ++row) {
+        int count = 0;
+        for (int col = 0; col < MAP_WIDTH; ++col) {
+            if (map.getNode(col, row).parentCount > 0) {
+                ++count;
+            }
+        }
+        if (count > 1) {
+            return row-1;
+        }
+    }
+    return 14;
+}
+
+int sts::getPathTotalSingleLength(std::int64_t seed) {
+    Map map;
+    Random random(seed+1);
+    generateMap(map, random);
+
+    int total = 0;
+    for (int row = 1; row < MAP_HEIGHT; ++row) {
+        int count = 0;
+        for (int col = 0; col < MAP_WIDTH; ++col) {
+            if (map.getNode(col, row).parentCount > 0) {
+                ++count;
+            }
+        }
+        if (count == 1) {
+            ++total;
+        }
+    }
+    return total;
+}
+
+int sts::getForcedMonsterFightCount(std::int64_t seed) {
+    Map map;
+    Random random(seed+1);
+    generateMap(map, random);
+
+    int total = 0;
+    for (int row = 1; row < MAP_HEIGHT; ++row) {
+
+        bool matches = true;
+        for (int col = 0; col < MAP_WIDTH; ++col) {
+            if (map.getNode(col, row).parentCount > 0 &&
+                !(map.getNode(col, row).room == Room::MONSTER  || map.getNode(col, row).room == Room::ELITE) ) {
+                matches = false;
+               break;
+            }
+        }
+        if (matches) {
+            ++total;
+        }
+    }
+    return total;
+}
+
+bool rowIsAllRoomType(const Map &map, int row, Room room) {
+    for (int col = 0; col < MAP_WIDTH; ++col) {
+        if (map.getNode(col, row).parentCount > 0 &&
+            map.getNode(col, row).room != room) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool sts::isForcedMonsterIntoEliteFight(std::int64_t seed) {
+    Map map;
+    Random random(seed+1);
+    generateMap(map, random);
+
+    for (int row = 1; row <= 4; ++row) {
+        if (!rowIsAllRoomType(map, row, Room::MONSTER)) {
+            return false;
+        }
+    }
+    return rowIsAllRoomType(map, 5, Room::ELITE);
+}
+
+
+
+void sts::printOutComes() {
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void sts::mapTest(std::int64_t seed) {
+    Random mapRng(seed+1);
+    sts::Map map;
+    sts::generateMap(map, mapRng);
+    auto x = randRange(mapRng, 0, 6);
+    std::cout << x << '\n';
+    std::cout << map.toString(true) << std::endl;
+    std::cout << getPathSingleLength(seed) << std::endl;
+}
+
+
+
+

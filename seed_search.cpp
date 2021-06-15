@@ -258,7 +258,7 @@ void sts::runSearch(SearchConfig config) {
 
 
 void testPandoraSeedsForDefectWatcherMtHelper2(ThreadData data) {
-    for (std::int64_t seed = data.startSeed+data.threadId; seed < data.endSeed; seed += data.threadCount) {
+    for (std::int64_t seed = data.startSeed; seed < data.endSeed; seed += data.threadCount) {
         if (testSeed(seed)) {
 //            logSeed(seed);
             data.foundVec->push_back(seed);
@@ -345,6 +345,13 @@ void findSinglePathSeedsMtHelper(ThreadData data, int length) {
             data.foundVec->push_back(seed);
         }
     }
+
+//    for (std::int64_t seed = data.startSeed+data.threadId; seed < data.endSeed; seed += data.threadCount) {
+//        if (isForcedMonsterIntoEliteFight(seed)) {
+//            std::cout << SeedHelper::getString(seed) << std::endl;
+//            data.foundVec->push_back(seed);
+//        }
+//    }
 }
 
 std::vector<std::int64_t> sts::findSinglePathSeedsMt(std::int64_t start, std::int64_t count, int threadCount, int length) {

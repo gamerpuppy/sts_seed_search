@@ -63,7 +63,7 @@ namespace sts {
 
     void generateMap(Map &map, Random &mapRng);
 
-    void mapTest();
+    void mapTest(std::int64_t seed);
 
     void printStats();
 
@@ -71,6 +71,14 @@ namespace sts {
 
     std::vector<std::int64_t> findSinglePathSeeds(std::int64_t start, std::int64_t count, int length);
 
+    int getPathSingleLength(std::int64_t seed);
+
+    int getPathTotalSingleLength(std::int64_t seed);
+
+    int getForcedMonsterFightCount(std::int64_t seed);
+    bool isForcedMonsterIntoEliteFight(std::int64_t seed);
+
+    void printOutComes();
 }
 
 

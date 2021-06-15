@@ -101,7 +101,7 @@ std::vector<sts::candidate> parseCandidates(std::string fName) {
 
 
 void runCandidateFilter() {
-    auto cs = parseCandidates("candidates-8.txt");
+    auto cs = parseCandidates("candidates-10.txt");
     auto res = sts::runSearch2(cs);
 
     std::sort(res.begin(), res.end());
@@ -160,14 +160,14 @@ void runMapBenchmark() {
     std::cout << edgeCount << std::endl;
 }
 
-
+// 2:47-10-56
 
 void findSinglePathSeeds() {
     Timer timer;
     timer.start();
 
-    std::int64_t seedStart = 4280033201LL;
-    std::int64_t seedCount = (std::int64_t)1e12;
+    std::int64_t seedStart = 46000000000000LL;
+    std::int64_t seedCount = (std::int64_t)5e8;
     std::cout << "start: " << seedStart << " count: " << seedCount << std::endl;
 
     auto res = sts::findSinglePathSeedsMt(seedStart, seedCount, 16, 4);
@@ -184,7 +184,54 @@ void findSinglePathSeeds() {
 }
 
 
+std::vector<std::int64_t> parseSeeds(std::string fName) {
+    std::ifstream input(fName);
+
+    std::vector<std::int64_t> ret;
+
+    std::string line;
+    while (std::getline(input, line)) {
+        ret.push_back(sts::SeedHelper::getLong(line));
+    }
+    return ret;
+};
+
+struct SeedResult {
+    std::int64_t seed;
+    int attribute;
+
+    SeedResult(int64_t seed, int attribute) : seed(seed), attribute(attribute) {}
+};
+
+bool compareSeedResults(const SeedResult &a, const SeedResult &b) {
+    return a.attribute > b.attribute;
+}
+
+
 int main(int argc, const char ** argv) {
+
+    auto seeds = parseSeeds("single-paths-2");
+
+    std::vector<SeedResult> results;
+    for (auto seed : seeds) {
+//        int length = sts::getPathSingleLength(seed);
+//        int length = sts::getPathTotalSingleLength(seed);
+        int length = sts::getForcedMonsterFightCount(seed);
+//        bool matches = sts::isForcedMonsterIntoEliteFight(seed);
+
+
+        results.emplace_back(seed, length);
+    }
+
+    std::sort(results.begin(), results.end(), compareSeedResults);
+
+    for (auto res : results) {
+        std::cout << res.attribute << " " << sts::SeedHelper::getString(res.seed) << '\n';
+    }
+
+
+
+
 //
 //    std::cout << sizeof(sts::MapNode) << std::endl;
 //    std::cout << sizeof(sts::Map) << std::endl;
@@ -192,13 +239,14 @@ int main(int argc, const char ** argv) {
 //    runMapBenchmark();
 
 //    sts::printStats();
-//    sts::mapTest();
+//    sts::mapTest(46006654027332);
 
 //    std::cout << sts::SeedHelper::getString(5000000+1527);
 
 //    sts::findSinglePathSeeds(223125166216516LL, (std::int64_t)1e9, 4);
 
-    findSinglePathSeeds();
+//    findSinglePathSeeds();
+
 
 
 //    for (int i = 0; i < 285; i++) {
@@ -212,5 +260,3 @@ int main(int argc, const char ** argv) {
 //    runCandidateFilter();
     return 0;
 }
-
-

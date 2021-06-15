@@ -13,7 +13,7 @@
 namespace sts {
 
 class Random {
-private:
+public:
     static constexpr double NORM_DOUBLE = 1.1102230246251565E-16;
     static constexpr double NORM_FLOAT = 5.9604644775390625E-8;
     static constexpr std::uint64_t ONE_IN_MOST_SIGNIFICANT = static_cast<std::uint64_t>(1) << 63;
@@ -49,7 +49,7 @@ private:
         do {
             bits = static_cast<std::uint64_t>(nextLong()) >> 1;
             value = bits % n;
-        } while (bits - value + (n - static_cast<std::uint64_t>(1)) < static_cast<std::uint64_t>(0));
+        } while (bits - value + (n - static_cast<std::uint64_t>(1)) < static_cast<std::int64_t>(0));
         return static_cast<std::int64_t>(value);
     }
 

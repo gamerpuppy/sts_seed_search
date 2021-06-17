@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <unordered_set>
 
 using namespace sts;
 
@@ -24,11 +25,28 @@ constexpr float REST_ROOM_CHANCE = 0.12F;
 constexpr float TREASURE_ROOM_CHANCE = 0.0f;
 constexpr float EVENT_ROOM_CHANCE = 0.22f;
 
-//constexpr float ELITE_ROOM_CHANCE = 0.08f;
-constexpr float ELITE_ROOM_CHANCE = 0.08*1.6f;
-//constexpr float ELITE_ROOM_CHANCE_A0 = 0.08f;
-//constexpr float ELITE_ROOM_CHANCE_A1 = ELITE_ROOM_CHANCE_A0 * 1.6f;
+constexpr float ELITE_ROOM_CHANCE_A0 = 0.08f;
+constexpr float ELITE_ROOM_CHANCE_A1 = ELITE_ROOM_CHANCE_A0 * 1.6f;
 
+
+char sts::getRoomSymbol(Room room) {
+    switch(room) {
+        case Room::NONE: return 'N';
+        case Room::EVENT: return '?';
+        case Room::MONSTER: return 'M';
+        case Room::ELITE: return 'E';
+//        case Room::BURNING_ELITE:
+        case Room::REST: return 'R';
+        case Room::SHOP: return '$';
+        case Room::TREASURE: return 'T';
+        default: return 'I';
+    }
+}
+
+
+void createPaths(Map &map, Random &mapRng);
+void filterRedundantEdgesFromFirstRow(Map &map);
+void assignRooms(Map &map, Random &mapRng, int ascensionLevel=0);
 
 MapNode &Map::getNode(int x, int y) {
     return nodes.at(y).at(x);
@@ -36,6 +54,111 @@ MapNode &Map::getNode(int x, int y) {
 
 const MapNode &Map::getNode(int x, int y) const {
     return nodes.at(y).at(x);
+}
+
+
+void initNodes(Map &map) {
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            auto &node = map.nodes.at(y).at(x);
+            node.x = x;
+            node.y = y;
+        }
+    }
+}
+
+Map Map::fromSeed(std::int64_t seed, int ascension, int act) {
+    Map map;
+    initNodes(map);
+    Random mapRng(seed+act);
+    createPaths(map, mapRng);
+    filterRedundantEdgesFromFirstRow(map);
+    assignRooms(map, mapRng, ascension);
+    map.normalizeParents();
+    return map;
+}
+
+void Map::normalizeParents() {
+    for (int row = 1; row < 15; ++row) {
+        for (int col = 0; col < 7; ++col) {
+            auto &node = getNode(col, row);
+            bool found[7] = {false};
+            for (int i = 0; i < node.parentCount; ++i) {
+                found[node.parents[i]] = true;
+            }
+            node.parentCount = 0;
+            for (int i = 0; i < 7; ++i) {
+                if (found[i]) {
+                    node.addParent(i);
+                }
+            }
+        }
+    }
+}
+
+Path Path::fromBits(std::int64_t bits) {
+    std::int64_t newBits = 0;
+    for (int y = 0; y < 15; ++y) {
+        auto bitsAtY = bits >> ((14-y)*4) & 0xF;
+        newBits |= (bitsAtY+1) << (y*4);
+    }
+    return Path(newBits);
+}
+
+Path Path::fromString(const std::string &str) {
+    Path path;
+    for (int y = 0; y < str.size(); ++y) {
+        Room room;
+        switch (str.at(y)) {
+            case '$': room = Room::SHOP; break;
+            case 'R': room = Room::REST; break;
+            case '?': room = Room::EVENT; break;
+            case 'E': room = Room::ELITE; break;
+            case 'M': room = Room::MONSTER; break;
+            case 'T': room = Room::TREASURE; break;
+            case 'B': room = Room::BOSS; break;
+            default: room = Room::NONE;
+        }
+        path = path.addRoom(room, y);
+    }
+
+    return path;
+}
+
+
+bool Path::operator<(const Path &rhs) const {
+    return bits < rhs.bits;
+}
+
+bool Path::contains(Room room) const {
+    return bits & roomContainBits[(int)room];
+}
+
+Room Path::roomAt(int y) const {
+    auto roomBits = (bits >> ((14-y)*4)) & 0xF;
+    return static_cast<Room>(roomBits-1);
+}
+
+Path Path::addRoom(Room room, int y) const {
+    int shiftAmt = ((14-y)*4);
+    auto maskedBits = bits & ~(0xFLL << shiftAmt);
+
+    auto roomBits = (static_cast<std::int64_t>(room)+1) << shiftAmt;
+    auto newBits = maskedBits | roomBits;
+    Path ret(newBits);
+    return ret;
+}
+
+std::string Path::toString() const {
+    std::string str;
+    for (int y = 0; y < 14; ++y) {
+        Room room = roomAt(y);
+        str += getRoomSymbol(room);
+        str += " - ";
+    }
+    Room room = roomAt(14);
+    str += getRoomSymbol(room);
+    return str;
 }
 
 static inline int randRange(Random &rng, int min, int max) {
@@ -51,17 +174,7 @@ inline void insertEdge(MapNode &mapNode, int dstX, int idx) {
 }
 
 char MapNode::getRoomSymbol() const {
-    switch(room) {
-        case Room::NONE: return 'N';
-        case Room::EVENT: return '?';
-        case Room::MONSTER: return 'M';
-        case Room::ELITE: return 'E';
-//        case Room::BURNING_ELITE:
-        case Room::REST: return 'R';
-        case Room::SHOP: return '$';
-        case Room::TREASURE: return 'T';
-        default: return 'I';
-    }
+    return sts::getRoomSymbol(room);
 }
 
 void MapNode::addParent(int parent) {
@@ -116,8 +229,6 @@ inline int MapNode::getMaxXParent() const {
 #else
     return maxXParent;
 #endif
-
-
 }
 
 inline int MapNode::getMinXParent() const {
@@ -425,12 +536,12 @@ RoomCounts getRoomCountsAndAssignFixed(Map &map) {
     return counts;
 }
 
-void fillRoomArray(Room *arr, RoomCounts counts) {
+void fillRoomArray(Room *arr, RoomCounts counts, float eliteRoomChance) {
 
     int shopCount = static_cast<int>(std::round(counts.total * SHOP_ROOM_CHANCE));
     int restCount = static_cast<int>(std::round(counts.total * REST_ROOM_CHANCE));
     int treasureCount = static_cast<int>(std::round(counts.total * TREASURE_ROOM_CHANCE));
-    int eliteCount = static_cast<int>(std::round(counts.total * ELITE_ROOM_CHANCE));
+    int eliteCount = static_cast<int>(std::round(counts.total * eliteRoomChance));
     int eventCount = static_cast<int>(std::round(counts.total * EVENT_ROOM_CHANCE));
 
     int i = 0;
@@ -656,30 +767,20 @@ void assignRoomsToNodes(Map &map, Room *rooms, int roomsSize) {
     }
 }
 
-void assignRooms(Map &map, Random &rng) {
+void assignRooms(Map &map, Random &rng, int ascensionLevel) {
     RoomCounts counts = getRoomCountsAndAssignFixed(map);
 
     Room rooms[counts.unassigned];
-    fillRoomArray(rooms, counts);
+    fillRoomArray(rooms, counts, ascensionLevel > 0 ? ELITE_ROOM_CHANCE_A1 : ELITE_ROOM_CHANCE_A0);
 
     for (int i=counts.unassigned; i>1; i--) {
         std::swap(rooms[i-1], rooms[rng.nextInt(i)]);
     }
 
     assignRoomsToNodes(map, rooms, counts.unassigned);
-//    lastMinuteNodeChecker(map);
-    return;
 }
 
-void initNodes(Map &map) {
-    for (int y = 0; y < MAP_HEIGHT; y++) {
-        for (int x = 0; x < MAP_WIDTH; x++) {
-            auto &node = map.nodes.at(y).at(x);
-            node.x = x;
-            node.y = y;
-        }
-    }
-}
+
 
 void normalizeMap(Map &map) {
     int newIndices[MAP_HEIGHT][MAP_WIDTH];
@@ -745,14 +846,9 @@ void sts::generateMap(Map &map, sts::Random &mapRng) {
 }
 
 
-
-
-
 void sts::printStats() {
 //    std::cout << "total same parents " << totalSameParents << std::endl;
 }
-
-
 
 int chooseNewPathFirstTest(Map &map, Random &rng, int curX, int curY) {
     MapNode &currentNode = map.getNode(curX, curY);
@@ -827,7 +923,6 @@ inline bool sts::testSeedForSinglePath(std::int64_t seed, int length) {
     sts::Map map;
     initNodes(map);
     return createPathsSinglePathTest(map, mapRng, length);
-
 }
 
 std::vector<std::int64_t> sts::findSinglePathSeeds(std::int64_t start, std::int64_t count, int length) {
@@ -882,28 +977,28 @@ int sts::getPathTotalSingleLength(std::int64_t seed) {
     return total;
 }
 
-int sts::getForcedMonsterFightCount(std::int64_t seed) {
-    Map map;
-    Random random(seed+1);
-    generateMap(map, random);
-
-    int total = 0;
-    for (int row = 1; row < MAP_HEIGHT; ++row) {
-
-        bool matches = true;
-        for (int col = 0; col < MAP_WIDTH; ++col) {
-            if (map.getNode(col, row).parentCount > 0 &&
-                !(map.getNode(col, row).room == Room::MONSTER  || map.getNode(col, row).room == Room::ELITE) ) {
-                matches = false;
-               break;
-            }
-        }
-        if (matches) {
-            ++total;
-        }
-    }
-    return total;
-}
+//int sts::getForcedMonsterFightCount(std::int64_t seed) {
+//    Map map;
+//    Random random(seed+1);
+//    generateMap(map, random);
+//
+//    int total = 0;
+//    for (int row = 1; row < MAP_HEIGHT; ++row) {
+//
+//        bool matches = true;
+//        for (int col = 0; col < MAP_WIDTH; ++col) {
+//            if (map.getNode(col, row).parentCount > 0 &&
+//                !(map.getNode(col, row).room == Room::MONSTER  || map.getNode(col, row).room == Room::ELITE) ) {
+//                matches = false;
+//               break;
+//            }
+//        }
+//        if (matches) {
+//            ++total;
+//        }
+//    }
+//    return total;
+//}
 
 bool rowIsAllRoomType(const Map &map, int row, Room room) {
     for (int col = 0; col < MAP_WIDTH; ++col) {
@@ -930,28 +1025,213 @@ bool sts::isForcedMonsterIntoEliteFight(std::int64_t seed) {
 
 
 
-void sts::printOutComes() {
+int sts::getMinMapWeight(const Map &map, NodePredicate predicate) {
+    std::array<int,7> prevWeights = {0};
+    std::array<int,7> curWeights = {0};
 
 
+    for (int col = 0; col < 7; ++col) {
+        auto node = map.getNode(col,0);
+        if (node.edgeCount == 0) {
+            continue;
+        }
+
+        prevWeights[col] = predicate(node);
+    }
 
 
+    for (int row = 1; row < 15; ++row) {
+
+        if (row == 14) {
+            std::fill(curWeights.begin(), curWeights.end(), 0x7FFFFFFF);
+        }
+
+        for (int col = 0; col < 7; ++col) {
+            auto node = map.getNode(col, row);
+            if (node.edgeCount == 0) {
+                continue;
+            }
+
+            int min = prevWeights[node.parents[0]];
+            for (int pIdx = 1; pIdx < node.parentCount; ++pIdx) {
+                if (prevWeights[node.parents[pIdx]] < min)  {
+                    min = prevWeights[node.parents[pIdx]];
+                }
+            }
+
+            int nodeValue = predicate(node);
+            curWeights[col] = nodeValue + min;
+        }
+        prevWeights = curWeights;
+    }
+
+    int min = prevWeights[0];
+    for (int i = 1; i < 7; ++i) {
+        if (prevWeights[i] < min) {
+            min = prevWeights[i];
+        }
+    }
+    return min;
+}
+
+int sts::getMaxMapWeight(const Map &map, NodePredicate predicate) {
+    std::array<int,7> prevWeights = {0};
+    std::array<int,7> curWeights = {0};
 
 
+    for (int col = 0; col < 7; ++col) {
+        auto node = map.getNode(col,0);
+        if (node.edgeCount == 0) {
+            continue;
+        }
+
+        prevWeights[col] = predicate(node);
+    }
+
+
+    for (int row = 1; row < 15; ++row) {
+        if (row == 14) {
+            std::fill(curWeights.begin(), curWeights.end(), -0x7FFFFFFF-1);
+        }
+        for (int col = 0; col < 7; ++col) {
+            auto node = map.getNode(col, row);
+
+            if (node.edgeCount == 0) {
+                continue;
+            }
+
+            int max = prevWeights[node.parents[0]];
+            for (int pIdx = 1; pIdx < node.parentCount; ++pIdx) {
+                if (prevWeights[node.parents[pIdx]] > max)  {
+                    max = prevWeights[node.parents[pIdx]];
+                }
+            }
+
+            int nodeValue = predicate(node);
+            curWeights[col] = nodeValue + max;
+        }
+        prevWeights = curWeights;
+    }
+
+    int max = prevWeights[0];
+    for (int i = 1; i < 7; ++i) {
+        if (prevWeights[i] > max) {
+            max = prevWeights[i];
+        }
+    }
+    return max;
 }
 
 
 
+void addSets(std::unordered_set<std::int64_t> &out, const std::unordered_set<std::int64_t> &in, const MapNode &node) {
+    std::int64_t bits = (static_cast<std::int64_t>(node.room)+1) << ((14-node.y)*4);
+
+    for (std::int64_t path : in) {
+        out.insert(path | bits);
+    }
+}
 
 
 
+std::set<Path> sts::getUniquePaths(const Map &map) {
+    std::array<std::unordered_set<std::int64_t>,7> prevSets = {};
+    std::array<std::unordered_set<std::int64_t>,7> curSets = {};
+
+    for (int col = 0; col < 7; ++col) {
+        auto node = map.getNode(col,0);
+        if (node.edgeCount == 0) {
+            continue;
+        }
+        std::int64_t bits = (static_cast<std::int64_t>(node.room)+1) << ((14-node.y)*4);
+        prevSets.at(col).insert(bits);
+    }
+
+    for (int row = 1; row < 15; ++row) {
+        for (int col = 0; col < 7; ++col) {
+
+            auto node = map.getNode(col, row);
+            curSets.at(col) = {};
+
+            for (int i = 0; i < node.parentCount; ++i) {
+                int parentCol = node.parents[i];
+                addSets(curSets.at((col)), prevSets.at(parentCol), node);
+            }
+        }
+
+        for (int i = 0; i < 7; ++i) {
+            prevSets.at(i) = std::move(curSets.at(i));
+        }
+
+    }
 
 
+    std::set<Path> uniquePaths;
+    for (const auto& pathSet : prevSets) {
+        for (std::int64_t bits : pathSet) {
+            uniquePaths.insert(Path(bits));
+        }
+    }
 
+    return uniquePaths;
+}
 
+void addPathSets(std::set<Path> &out, const std::set<Path> &in, const MapNode &node, const PathBuilderPredicate &p) {
+    for (auto path : in) {
+        if (p(path, node.room, node.y)) {
+            out.insert( path.addRoom(node.room, node.y) );
+        }
+    }
+}
 
+std::set<Path> sts::getPathsMatching(const Map &map, const PathBuilderPredicate &p) {
 
+    std::array<std::set<Path>,7> prevPaths = {};
+    std::array<std::set<Path>,7> curPaths = {};
 
+    for (int col = 0; col < 7; ++col) {
+        auto node = map.getNode(col,0);
+        if (node.edgeCount == 0) {
+            continue;
+        }
+        Path path(node.room);
+        if (p(path, node.room, node.y)) {
+            curPaths.at(col).insert(path);
+        }
+    }
 
+    for (int row = 1; row < 15; ++row) {
+
+        bool allEmpty = true;
+        for (int i = 0; i < 7; ++i) {
+            if (!curPaths.at(i).empty()) {
+                allEmpty = false;
+            }
+            prevPaths.at(i) = std::move(curPaths.at(i));
+        }
+        if (allEmpty) {
+            return {};
+        }
+
+        for (int col = 0; col < 7; ++col) {
+            auto node = map.getNode(col, row);
+
+            for (int i = 0; i < node.parentCount; ++i) {
+                int parentCol = node.parents[i];
+                addPathSets(curPaths.at(col), prevPaths.at(parentCol), node, p);
+            }
+        }
+    }
+
+    std::set<Path> paths;
+    for (const auto& pathSet : curPaths) {
+        for (auto path : pathSet) {
+            paths.insert(path);
+        }
+    }
+
+    return paths;
+}
 
 void sts::mapTest(std::int64_t seed) {
     Random mapRng(seed+1);

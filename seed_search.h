@@ -23,7 +23,6 @@ namespace sts {
                                                      threadId(threadId), foundVec(foundVec) {}
     };
 
-
     struct PandorasBoxRewardResult {
         int count;
         const char *name;
@@ -57,7 +56,9 @@ namespace sts {
     std::vector<std::int64_t> findSinglePathSeedsMt(std::int64_t start, std::int64_t count, int threadCount, int length);
 
 
+    bool testSeedForNeowBossEvent(std::int64_t  seed);
 
+    typedef std::function<bool(std::int64_t)> SeedPredicate;
 
 }
 

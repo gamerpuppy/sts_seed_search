@@ -12,6 +12,7 @@
 #include "java_random.h"
 #include "seed_search_fast.h"
 #include "sts_map.h"
+#include "sts_events.h"
 
 
 using namespace sts;
@@ -110,7 +111,7 @@ PandorasBoxRewardResult analyzePandorasBoxRewards(std::int64_t seed, CharacterCl
 
     sts::Random cardRandomRng(seed);
 
-    sts::Card cards[8];
+    sts::Card cards[numTransformedCards];
 
     int sameLastCardCount = 1;
     int maxSameLastCardCount = 1;
@@ -375,6 +376,51 @@ std::vector<std::int64_t> sts::findSinglePathSeedsMt(std::int64_t start, std::in
 }
 
 
+bool validateNeowBossPath(std::int64_t seed, Path p) {
+    GameState gameState = GameState::createGameState(seed, 0);
+    gameState.lastRoom = Room::MONSTER;
+
+    std::cout << p.toString() << std::endl;
+
+    for (int y = 1; y < 14; y++) {
+        gameState.floor = y+1;
+        Room room = p.roomAt(y);
+
+        if (room == sts::Room::EVENT) {
+            auto res = getEventRoomEvent(gameState);
+
+            if (res == Event::MONSTER) {
+                gameState.lastRoom = Room::MONSTER;
+                return false;
+            } else if (res == Event::SHOP) {
+                gameState.lastRoom = Room::SHOP;
+            } else {
+                gameState.lastRoom = Room::EVENT;
+            }
+
+        } else {
+            gameState.lastRoom = room;
+
+        }
+    }
+
+
+    return true;
+}
+
+
+bool sts::testSeedForNeowBossEvent(const std::int64_t seed) {
+    Map map = Map::fromSeed(seed, 0);
+
+    auto candidatePaths = getPathsMatching(map, [](auto path, auto nextRoom, auto pathLength) {
+        return pathLength == 0 || (nextRoom != Room::MONSTER && nextRoom != Room::ELITE);
+    });
+
+
+    return std::any_of(candidatePaths.begin(),candidatePaths.end(),
+                       [=](auto p){ return validateNeowBossPath(seed, p);
+    });
+}
 
 
 

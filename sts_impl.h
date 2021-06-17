@@ -12,7 +12,7 @@
 
 namespace sts {
 
-class Random {
+    class Random {
 public:
     static constexpr double NORM_DOUBLE = 1.1102230246251565E-16;
     static constexpr double NORM_FLOAT = 5.9604644775390625E-8;
@@ -42,14 +42,15 @@ public:
         return static_cast<std::int64_t>(seed1 + s0);
     }
 
+
     // n must be greater than 0
     std::int64_t nextLong(std::uint64_t n) {
         std::uint64_t bits;
         std::uint64_t value;
         do {
-            bits = static_cast<std::uint64_t>(nextLong()) >> 1;
+            bits = static_cast<std::uint64_t>(nextLong() >> 1);
             value = bits % n;
-        } while (bits - value + (n - static_cast<std::uint64_t>(1)) < static_cast<std::int64_t>(0));
+        } while (static_cast<int64_t>(bits - value + n - 1) < 0);
         return static_cast<std::int64_t>(value);
     }
 
@@ -70,6 +71,11 @@ public:
 
     bool nextBoolean() {
         return (nextLong() & static_cast<std::int64_t>(1)) != static_cast<std::int64_t>(0);
+    }
+
+    bool randomBoolean(float chance) {
+        ++counter;
+        return nextFloat() < chance;
     }
 
 

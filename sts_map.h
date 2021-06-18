@@ -103,7 +103,8 @@ namespace sts {
 
         [[nodiscard]] Room roomAt(int y) const;
         [[nodiscard]] Path addRoom(Room room, int y) const;
-        [[nodiscard]] std::string toString() const;
+        [[nodiscard]] std::string toString(int begin=0, int end=15) const;
+        [[nodiscard]] std::string toPrettyString() const;
     };
 
     typedef std::function<int(MapNode)> NodePredicate;
@@ -130,8 +131,8 @@ namespace sts {
     int getMaxMapWeight(const Map &map, NodePredicate predicate);
 
     std::set<Path> getUniquePaths(const Map &map);
-
     std::set<Path> getPathsMatching(const Map&, const PathBuilderPredicate &);
+    Path getLeftMostPath(const Map& map, int length=15);
 
 
 

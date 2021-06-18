@@ -8,6 +8,7 @@
 namespace sts {
 
     static const char *cardNames[]{
+            "NONE",
             "ACCURACY",
             "ACROBATICS",
             "ADRENALINE",
@@ -296,6 +297,7 @@ namespace sts {
     };
 
     static const char *normalCardNames[]{
+            "NONE",
             "Accuracy",
             "Acrobatics",
             "Adrenaline",
@@ -584,7 +586,8 @@ namespace sts {
     };
 
     enum class Card {
-        ACCURACY=0,
+        NONE,
+        ACCURACY,
         ACROBATICS,
         ADRENALINE,
         AFTER_IMAGE,
@@ -869,10 +872,69 @@ namespace sts {
         WORSHIP,
         WRAITH_FORM,
         WREATH_OF_FLAME,
+
+
+
+        APOTHEOSIS,
+        BANDAGE_UP,
+        BLIND,
+        CHRYSALIS,
+        DARK_SHACKLES,
+        DEEP_BREATH,
+        DISCOVERY,
+        DRAMATIC_ENTRANCE,
+        ENLIGHTENMENT,
+        FINESSE,
+        FLASH_OF_STEEL,
+        FORETHOUGHT,
+        GOOD_INSTINCTS,
+        HAND_OF_GREED,
+        IMPATIENCE,
+        JACK_OF_ALL_TRADES,
+        MADNESS,
+        MAGNETISM,
+        MASTER_OF_STRATEGY,
+        MAYHEM,
+        METAMORPHOSIS,
+        MIND_BLAST,
+        PANACEA,
+        PANACHE,
+        PANIC_BUTTON,
+        PURITY,
+        SADISTIC_NATURE,
+        SECRET_TECHNIQUE,
+        SECRET_WEAPON,
+        SWIFT_STRIKE,
+        THE_BOMB,
+        THINKING_AHEAD,
+        TRANSMUTATION,
+        TRIP,
+        VIOLENCE,
+
+        CLUMSY,
+        DECAY,
+        DOUBT,
+        INJURY,
+        NORMALITY,
+        PAIN,
+        PARASITE,
+        REGRET,
+        SHAME,
+        WRITHE,
+    };
+
+    enum class CardRarity {
+        BASIC,
+        SPECIAL,
+        COMMON,
+        UNCOMMON,
+        RARE,
+        CURSE,
     };
 
     enum Relic {
-        AKABEKO=0,
+        INVALID=0,
+        AKABEKO,
         ANCHOR,
         ANCIENT_TEA_SET,
         ART_OF_WAR,
@@ -901,6 +963,7 @@ namespace sts {
         CHAMPION_BELT,
         CHARONS_ASHES,
         CHEMICAL_X,
+        CIRCLET,
         CLOAK_CLASP,
         CLOCKWORK_SOUVENIR,
         COFFEE_DRIPPER,
@@ -995,6 +1058,7 @@ namespace sts {
         PRISMATIC_SHARD,
         PURE_WATER,
         QUESTION_CARD,
+        RED_CIRCLET,
         RED_MASK,
         RED_SKULL,
         REGAL_PILLOW,
@@ -1052,11 +1116,196 @@ namespace sts {
         WRIST_BLADE,
     };
 
+    enum class PotionRarity {
+        PLACEHOLDER,
+        COMMON,
+        UNCOMMON,
+        RARE,
+    };
+
+
+    enum class Potion {
+        INVALID=0,
+        AMBROSIA,
+        ANCIENT_POTION,
+
+        ATTACK_POTION,
+        BLESSING_OF_THE_FORGE,
+        BLOCK_POTION,
+        BLOOD_POTION,
+
+        BOTTLED_MIRACLE,
+        COLORLESS_POTION,
+        CULTIST_POTION,
+        CUNNING_POTION,
+
+        DEXTERITY_POTION,
+        DISTILLED_CHAOS,
+        DUPLICATION_POTION,
+        ELIXIR_POTION,
+
+        ENERGY_POTION,
+        ENTROPIC_BREW,
+        ESSENCE_OF_DARKNESS,
+        ESSENCE_OF_STEEL,
+
+        EXPLOSIVE_POTION,
+        FAIRY_POTION,
+        FEAR_POTION,
+        FIRE_POTION,
+
+        FLEX_POTION, // called SteroidPotion in game code
+        FOCUS_POTION,
+        FRUIT_JUICE,
+        GAMBLERS_BREW,
+
+        GHOST_IN_A_JAR,
+        HEART_OF_IRON,
+        LIQUID_BRONZE,
+        LIQUID_MEMORIES,
+
+        POISON_POTION,
+        POTION_OF_CAPACITY,
+        POWER_POTION,
+        REGEN_POTION,
+
+        SKILL_POTION,
+        SMOKE_BOMB,
+        SNECKO_OIL,
+        SPEED_POTION,
+
+        STANCE_POTION,
+        STRENGTH_POTION,
+        SWIFT_POTION,
+        WEAK_POTION,
+    };
+
+
+    static const PotionRarity potionRarities[] = {
+        PotionRarity::PLACEHOLDER,
+        PotionRarity::RARE,     // Ambrosia
+        PotionRarity::UNCOMMON, // Ancient Potion
+
+        PotionRarity::COMMON,   // Attack Potion
+        PotionRarity::COMMON,   // Blessing of the Forge
+        PotionRarity::COMMON,   // Block Potion
+        PotionRarity::COMMON,   // Blood Potion
+
+        PotionRarity::COMMON,   // Bottled Miracle
+        PotionRarity::COMMON,   // Colorless Potion
+        PotionRarity::RARE,     // Cultist Potion
+        PotionRarity::UNCOMMON, // Cunning Potion
+
+        PotionRarity::COMMON,   // Dexterity Potion
+        PotionRarity::UNCOMMON, // Distilled Chaos
+        PotionRarity::UNCOMMON, // Duplication Potion
+        PotionRarity::UNCOMMON, // Elixir Potion
+
+        PotionRarity::COMMON,   // Energy Potion
+        PotionRarity::RARE,     // Entropic Brew
+        PotionRarity::RARE,     // Essence of Darkness
+        PotionRarity::UNCOMMON, // Essence of Steel
+
+        PotionRarity::COMMON,   // Explosive Potion
+        PotionRarity::RARE,     // Fairy Potion
+        PotionRarity::COMMON,   // Fear Potion
+        PotionRarity::COMMON,   // Fire Potion
+
+        PotionRarity::COMMON,   // Flex Potion
+        PotionRarity::COMMON,   // Focus Potion
+        PotionRarity::RARE,     // Fruit Juice
+        PotionRarity::UNCOMMON, // Gamblers Brew
+
+        PotionRarity::RARE,     // Ghost in a Jar
+        PotionRarity::RARE,     // Heart of Iron
+        PotionRarity::UNCOMMON, // Liquid Bronze
+        PotionRarity::UNCOMMON, // Liquid Memories
+
+        PotionRarity::COMMON,   // Poison Potion
+        PotionRarity::UNCOMMON, // Potion of Capacity
+        PotionRarity::COMMON,   // Power Potion
+        PotionRarity::UNCOMMON, // Regen Potion
+
+        PotionRarity::COMMON,   // Skill Potion
+        PotionRarity::RARE,     // Smoke Bomb
+        PotionRarity::RARE,     // Snecko Oil
+        PotionRarity::COMMON,   // Speed Potion
+
+        PotionRarity::UNCOMMON, // Stance Potion
+        PotionRarity::COMMON,   // Strength Potion
+        PotionRarity::COMMON,   // Swift Potion
+        PotionRarity::COMMON,   // Weak Potion
+    };
+
+
+
+    //  retVal.add("Block Potion");
+    //        retVal.add("Dexterity Potion");
+    //        retVal.add("Energy Potion");
+    //        retVal.add("Explosive Potion");
+    //        retVal.add("Fire Potion");
+    //        retVal.add("Strength Potion");
+    //        retVal.add("Swift Potion");
+    //        retVal.add("Weak Potion");
+    //        retVal.add("FearPotion");
+    //        retVal.add("AttackPotion");
+    //        retVal.add("SkillPotion");
+    //        retVal.add("PowerPotion");
+    //        retVal.add("ColorlessPotion");
+    //        retVal.add("SteroidPotion");
+    //        retVal.add("SpeedPotion");
+    //        retVal.add("BlessingOfTheForge");
+    //        retVal.add("Regen Potion");
+    //        retVal.add("Ancient Potion");
+    //        retVal.add("LiquidBronze");
+    //        retVal.add("GamblersBrew");
+    //        retVal.add("EssenceOfSteel");
+    //        retVal.add("DuplicationPotion");
+    //        retVal.add("DistilledChaos");
+    //        retVal.add("LiquidMemories");
+    //        retVal.add("CultistPotion");
+    //        retVal.add("Fruit Juice");
+    //        retVal.add("SneckoOil");
+    //        retVal.add("FairyPotion");
+    //        retVal.add("SmokeBomb");
+    //        retVal.add("EntropicBrew");
+
+
+    enum class RelicTier {
+        DEPRECATED=0,
+        STARTER,
+        COMMON,
+        UNCOMMON,
+        RARE,
+        SPECIAL,
+        BOSS,
+        SHOP,
+    };
+
+    static const char* relicTierStrings[] = {
+            "DEPRECATED",
+            "STARTER",
+            "COMMON",
+            "UNCOMMON",
+            "RARE",
+            "SPECIAL",
+            "BOSS",
+            "SHOP",
+    };
+
     enum class CharacterClass {
         IRONCLAD,
         SILENT,
         DEFECT,
         WATCHER
+    };
+
+    enum class CardType {
+        ATTACK,
+        SKILL,
+        POWER,
+        CURSE,
+        STATUS,
     };
 
     constexpr int SMALL_CHEST_CHANCE = 50;
@@ -1065,6 +1314,70 @@ namespace sts {
     constexpr int COMMON_RELIC_CHANCE = 50;
     constexpr int UNCOMMON_RELIC_CHANCE = 33;
     constexpr int RARE_RELIC_CHANCE = 17;
+
+
+    static constexpr std::array<Card, 76> allColorCommonCards = {Card::GO_FOR_THE_EYES, Card::CONSECRATE, Card::CLOAK_AND_DAGGER, Card::BOWLING_BASH, Card::SNEAKY_STRIKE, Card::ANGER, Card::CLEAVE, Card::BALL_LIGHTNING, Card::WARCRY, Card::FLYING_SLEEVES, Card::STREAMLINE, Card::DEADLY_POISON, Card::FLEX, Card::RECURSION, Card::DAGGER_SPRAY, Card::HALT, Card::BANE, Card::JUST_LUCKY, Card::FLURRY_OF_BLOWS, Card::BLADE_DANCE, Card::DEFLECT, Card::COMPILE_DRIVER, Card::PROTECT, Card::DAGGER_THROW, Card::THIRD_EYE, Card::IRON_WAVE, Card::POISONED_STAB, Card::BODY_SLAM, Card::TRUE_GRIT, Card::BARRAGE, Card::CRESCENDO, Card::TRANQUILITY, Card::EMPTY_BODY, Card::SHRUG_IT_OFF, Card::CLASH, Card::STACK, Card::THUNDERCLAP, Card::REBOUND, Card::SASH_WHIP, Card::POMMEL_STRIKE, Card::ACROBATICS, Card::QUICK_SLASH, Card::TWIN_STRIKE, Card::CLAW, Card::CLOTHESLINE, Card::COOLHEADED, Card::CUT_THROUGH_FATE, Card::TURBO, Card::ARMAMENTS, Card::HAVOC, Card::SWEEPING_BEAM, Card::HEADBUTT, Card::CHARGE_BATTERY, Card::WILD_STRIKE, Card::HEAVY_BLADE, Card::HOLOGRAM, Card::FOLLOW_UP, Card::BEAM_CELL, Card::LEAP, Card::PRESSURE_POINTS, Card::SLICE, Card::BACKFLIP, Card::OUTMANEUVER, Card::COLD_SNAP, Card::CRUSH_JOINTS, Card::PERFECTED_STRIKE, Card::EVALUATE, Card::PREPARED, Card::SWORD_BOOMERANG, Card::PROSTRATE, Card::PIERCING_WAIL, Card::SUCKER_PUNCH, Card::STEAM_BARRIER, Card::DODGE_AND_ROLL, Card::EMPTY_FIST, Card::FLYING_KNEE, };
+    static constexpr std::array<Card, 160> allColorUncommonCards = {Card::CRIPPLING_CLOUD, Card::STORM, Card::SPOT_WEAKNESS, Card::GENETIC_ALGORITHM, Card::OVERCLOCK, Card::HELLO_WORLD, Card::DARK_SHACKLES, Card::WHEEL_KICK, Card::SUNDER, Card::GLACIER, Card::INFLAME, Card::SIMMERING_FURY, Card::FORESIGHT, Card::CONSUME, Card::POWER_THROUGH, Card::DUAL_WIELD, Card::LEG_SWEEP, Card::PANIC_BUTTON, Card::FUSION, Card::CATALYST, Card::SANCTITY, Card::TACTICIAN, Card::INFERNAL_BLADE, Card::TALK_TO_THE_HAND, Card::BATTLE_HYMN, Card::TRIP, Card::INDIGNATION, Card::WINDMILL_STRIKE, Card::RECKLESS_CHARGE, Card::FOREIGN_INFLUENCE, Card::AGGREGATE, Card::EXPERTISE, Card::DRAMATIC_ENTRANCE, Card::HEMOKINESIS, Card::BLIZZARD, Card::CHAOS, Card::INTIMIDATE, Card::CHOKE, Card::CALTROPS, Card::IMPATIENCE, Card::BLUR, Card::LIKE_WATER, Card::SETUP, Card::BLOOD_FOR_BLOOD, Card::FASTING, Card::CARVE_REALITY, Card::WALLOP, Card::FLAME_BARRIER, Card::ENDLESS_AGONY, Card::WREATH_OF_FLAME, Card::COLLECT, Card::MELTER, Card::PUMMEL, Card::BURNING_PACT, Card::RIDDLE_WITH_HOLES, Card::METALLICIZE, Card::SELF_REPAIR, Card::INNER_PEACE, Card::RUSHDOWN, Card::LOOP, Card::BLIND, Card::SKEWER, Card::CHILL, Card::BOOT_SEQUENCE, Card::DECEIVE_REALITY, Card::MENTAL_FORTRESS, Card::SHOCKWAVE, Card::RAMPAGE, Card::STATIC_DISCHARGE, Card::HEATSINKS, Card::BANDAGE_UP, Card::SEVER_SOUL, Card::WHIRLWIND, Card::CALCULATED_GAMBLE, Card::TEMPEST, Card::COMBUST, Card::DEEP_BREATH, Card::ESCAPE_PLAN, Card::REACH_HEAVEN, Card::FINISHER, Card::DARK_EMBRACE, Card::WELL_LAID_PLANS, Card::FEAR_NO_EVIL, Card::SEEING_RED, Card::SANDS_OF_TIME, Card::DISARM, Card::EQUILIBRIUM, Card::TERROR, Card::FORCE_FIELD, Card::FEEL_NO_PAIN, Card::FTL, Card::RIP_AND_TEAR, Card::DARKNESS, Card::HEEL_HOOK, Card::DOUBLE_ENERGY, Card::RAGE, Card::REINFORCED_BODY, Card::ENTRENCH, Card::NOXIOUS_FUMES, Card::INFINITE_BLADES, Card::WAVE_OF_THE_HAND, Card::REFLEX, Card::STUDY, Card::SENTINEL, Card::MEDITATE, Card::EVISCERATE, Card::FLASH_OF_STEEL, Card::BATTLE_TRANCE, Card::FORETHOUGHT, Card::AUTO_SHIELDS, Card::PERSEVERANCE, Card::SWIVEL, Card::SEARING_BLOW, Card::REPROGRAM, Card::SECOND_WIND, Card::ENLIGHTENMENT, Card::PURITY, Card::PANACEA, Card::BULLSEYE, Card::DASH, Card::WORSHIP, Card::CONCLUDE, Card::BACKSTAB, Card::SCRAPE, Card::RUPTURE, Card::DISCOVERY, Card::BOUNCING_FLASK, Card::FINESSE, Card::RECYCLE, Card::BLOODLETTING, Card::CONCENTRATE, Card::SKIM, Card::WHITE_NOISE, Card::CAPACITOR, Card::FLECHETTES, Card::TANTRUM, Card::CARNAGE, Card::MASTERFUL_STAB, Card::NIRVANA, Card::GOOD_INSTINCTS, Card::DROPKICK, Card::SWIFT_STRIKE, Card::ACCURACY, Card::EMPTY_MIND, Card::DEFRAGMENT, Card::JACK_OF_ALL_TRADES, Card::FIRE_BREATHING, Card::GHOSTLY_ARMOR, Card::WEAVE, Card::SIGNATURE_MOVE, Card::UPPERCUT, Card::MIND_BLAST, Card::DOOM_AND_GLOOM, Card::EVOLVE, Card::FOOTWORK, Card::DISTRACTION, Card::ALL_OUT_ATTACK, Card::PREDATOR, Card::PRAY, Card::MADNESS, };
+    static constexpr std::array<Card, 84> allColorRareCards = {Card::IMMOLATE, Card::GRAND_FINALE, Card::DEUS_EX_MACHINA, Card::A_THOUSAND_CUTS, Card::CORE_SURGE, Card::FISSION, Card::CREATIVE_AI, Card::GLASS_KNIFE, Card::STORM_OF_STEEL, Card::SADISTIC_NATURE, Card::OFFERING, Card::EXHUME, Card::BULLET_TIME, Card::REAPER, Card::AFTER_IMAGE, Card::UNLOAD, Card::AMPLIFY, Card::BRUTALITY, Card::NIGHTMARE, Card::REBOOT, Card::ALL_FOR_ONE, Card::TOOLS_OF_THE_TRADE, Card::ECHO_FORM, Card::JUGGERNAUT, Card::DEVA_FORM, Card::THE_BOMB, Card::SPIRIT_SHIELD, Card::IMPERVIOUS, Card::METEOR_STRIKE, Card::ESTABLISHMENT, Card::SEEK, Card::WRAITH_FORM, Card::BERSERK, Card::RAINBOW, Card::BURST, Card::DOPPELGANGER, Card::OMNISCIENCE, Card::ENVENOM, Card::ADRENALINE, Card::WISH, Card::ALPHA, Card::VAULT, Card::SCRAWL, Card::LESSON_LEARNED, Card::SECRET_TECHNIQUE, Card::DIE_DIE_DIE, Card::RAGNAROK, Card::BUFFER, Card::ELECTRODYNAMICS, Card::VIOLENCE, Card::PANACHE, Card::FIEND_FIRE, Card::BARRICADE, Card::SECRET_WEAPON, Card::APOTHEOSIS, Card::CORRUPTION, Card::BLASPHEMY, Card::MACHINE_LEARNING, Card::LIMIT_BREAK, Card::PHANTASMAL_KILLER, Card::MALAISE, Card::MAYHEM, Card::HAND_OF_GREED, Card::BIASED_COGNITION, Card::DEVOTION, Card::CORPSE_EXPLOSION, Card::TRANSMUTATION, Card::CHRYSALIS, Card::FEED, Card::ALCHEMIZE, Card::BLUDGEON, Card::BRILLIANCE, Card::MAGNETISM, Card::MASTER_OF_STRATEGY, Card::THUNDER_STRIKE, Card::MASTER_REALITY, Card::HYPERBEAM, Card::DEMON_FORM, Card::METAMORPHOSIS, Card::MULTI_CAST, Card::DOUBLE_TAP, Card::CONJURE_BLADE, Card::JUDGMENT, Card::THINKING_AHEAD, };
+    static constexpr std::array<Card, 10> curseCardPool = { Card::REGRET, Card::WRITHE, Card::DECAY, Card::PAIN, Card::PARASITE, Card::DOUBT, Card::INJURY, Card::CLUMSY, Card::NORMALITY, Card::SHAME };
+
+
+    namespace Ironclad {
+        static constexpr std::array<Relic, 33> commonRelicPool = {WHETSTONE, THE_BOOT, BLOOD_VIAL, MEAL_TICKET, PEN_NIB, AKABEKO, LANTERN, REGAL_PILLOW, BAG_OF_PREPARATION, ANCIENT_TEA_SET, SMILING_MASK, POTION_BELT, PRESERVED_INSECT, OMAMORI, MAW_BANK, ART_OF_WAR, TOY_ORNITHOPTER, CERAMIC_FISH, VAJRA, CENTENNIAL_PUZZLE, STRAWBERRY, HAPPY_FLOWER, ODDLY_SMOOTH_STONE, WAR_PAINT, BRONZE_SCALES, JUZU_BRACELET, DREAM_CATCHER, NUNCHAKU, TINY_CHEST, ORICHALCUM, ANCHOR, BAG_OF_MARBLES, RED_SKULL};
+        static constexpr std::array<Relic, 30> uncommonRelicPool = {BOTTLED_TORNADO, SUNDIAL, KUNAI, PEAR, BLUE_CANDLE, ETERNAL_FEATHER, STRIKE_DUMMY, SINGING_BOWL, MATRYOSHKA, INK_BOTTLE, THE_COURIER, FROZEN_EGG, ORNAMENTAL_FAN, BOTTLED_LIGHTNING, GREMLIN_HORN, HORN_CLEAT, TOXIC_EGG, LETTER_OPENER, QUESTION_CARD, BOTTLED_FLAME, SHURIKEN, MOLTEN_EGG, MEAT_ON_THE_BONE, DARKSTONE_PERIAPT, MUMMIFIED_HAND, PANTOGRAPH, WHITE_BEAST_STATUE, MERCURY_HOURGLASS, SELFFORMING_CLAY, PAPER_PHROG};
+        static constexpr std::array<Relic, 28> rareRelicPool = {GINGER, OLD_COIN, BIRDFACED_URN, UNCEASING_TOP, TORII, STONE_CALENDAR, SHOVEL, WING_BOOTS, THREAD_AND_NEEDLE, TURNIP, ICE_CREAM, CALIPERS, LIZARD_TAIL, PRAYER_WHEEL, GIRYA, DEAD_BRANCH, DUVU_DOLL, POCKETWATCH, MANGO, INCENSE_BURNER, GAMBLING_CHIP, PEACE_PIPE, CAPTAINS_WHEEL, FOSSILIZED_HELIX, TUNGSTEN_ROD, MAGIC_FLOWER, CHARONS_ASHES, CHAMPION_BELT};
+        static constexpr std::array<Relic, 22> bossRelicPool = {FUSION_HAMMER, VELVET_CHOKER, RUNIC_DOME, SLAVERS_COLLAR, SNECKO_EYE, PANDORAS_BOX, CURSED_KEY, BUSTED_CROWN, ECTOPLASM, TINY_HOUSE, SOZU, PHILOSOPHERS_STONE, ASTROLABE, BLACK_STAR, SACRED_BARK, EMPTY_CAGE, RUNIC_PYRAMID, CALLING_BELL, COFFEE_DRIPPER, BLACK_BLOOD, MARK_OF_PAIN, RUNIC_CUBE};
+        static constexpr std::array<Relic, 17> shopRelicPool = {SLING_OF_COURAGE, HAND_DRILL, TOOLBOX, CHEMICAL_X, LEES_WAFFLE, ORRERY, DOLLYS_MIRROR, ORANGE_PELLETS, PRISMATIC_SHARD, CLOCKWORK_SOUVENIR, FROZEN_EYE, THE_ABACUS, MEDICAL_KIT, CAULDRON, STRANGE_SPOON, MEMBERSHIP_CARD, BRIMSTONE};
+
+        static constexpr std::array<Card, 20> commonCardPool = {Card::ANGER, Card::CLEAVE, Card::WARCRY, Card::FLEX, Card::IRON_WAVE,Card::BODY_SLAM, Card::TRUE_GRIT, Card::SHRUG_IT_OFF, Card::CLASH, Card::THUNDERCLAP, Card::POMMEL_STRIKE, Card::TWIN_STRIKE, Card::CLOTHESLINE, Card::ARMAMENTS, Card::HAVOC, Card::HEADBUTT, Card::WILD_STRIKE, Card::HEAVY_BLADE, Card::PERFECTED_STRIKE, Card::SWORD_BOOMERANG };
+        static constexpr std::array<Card, 36> uncommonCardPool = {Card::SPOT_WEAKNESS, Card::INFLAME, Card::POWER_THROUGH, Card::DUAL_WIELD, Card::INFERNAL_BLADE, Card::RECKLESS_CHARGE, Card::HEMOKINESIS, Card::INTIMIDATE, Card::BLOOD_FOR_BLOOD, Card::FLAME_BARRIER, Card::PUMMEL, Card::BURNING_PACT, Card::METALLICIZE, Card::SHOCKWAVE, Card::RAMPAGE, Card::SEVER_SOUL, Card::WHIRLWIND, Card::COMBUST, Card::DARK_EMBRACE, Card::SEEING_RED, Card::DISARM, Card::FEEL_NO_PAIN, Card::RAGE, Card::ENTRENCH, Card::SENTINEL, Card::BATTLE_TRANCE, Card::SEARING_BLOW, Card::SECOND_WIND, Card::RUPTURE, Card::BLOODLETTING, Card::CARNAGE, Card::DROPKICK, Card::FIRE_BREATHING, Card::GHOSTLY_ARMOR, Card::UPPERCUT, Card::EVOLVE};
+        static constexpr std::array<Card, 16> rareCardPool = {Card::IMMOLATE, Card::OFFERING, Card::EXHUME, Card::REAPER, Card::BRUTALITY, Card::JUGGERNAUT, Card::IMPERVIOUS, Card::BERSERK, Card::FIEND_FIRE, Card::BARRICADE, Card::CORRUPTION, Card::LIMIT_BREAK, Card::FEED, Card::BLUDGEON, Card::DEMON_FORM, Card::DOUBLE_TAP};
+        static constexpr std::array<Card, 72> cardPool = {
+                Card::SWORD_BOOMERANG, Card::PERFECTED_STRIKE, Card::HEAVY_BLADE, Card::WILD_STRIKE, Card::HEADBUTT, Card::HAVOC, Card::ARMAMENTS, Card::CLOTHESLINE, Card::TWIN_STRIKE, Card::POMMEL_STRIKE, Card::THUNDERCLAP, Card::CLASH, Card::SHRUG_IT_OFF, Card::TRUE_GRIT,Card::BODY_SLAM, Card::IRON_WAVE, Card::FLEX, Card::WARCRY, Card::CLEAVE,Card::ANGER,
+                Card::EVOLVE, Card::UPPERCUT, Card::GHOSTLY_ARMOR, Card::FIRE_BREATHING, Card::DROPKICK, Card::CARNAGE, Card::BLOODLETTING, Card::RUPTURE, Card::SECOND_WIND, Card::SEARING_BLOW, Card::BATTLE_TRANCE, Card::SENTINEL, Card::ENTRENCH, Card::RAGE, Card::FEEL_NO_PAIN, Card::DISARM, Card::SEEING_RED, Card::DARK_EMBRACE, Card::COMBUST, Card::WHIRLWIND, Card::SEVER_SOUL, Card::RAMPAGE, Card::SHOCKWAVE, Card::METALLICIZE, Card::BURNING_PACT, Card::PUMMEL, Card::FLAME_BARRIER, Card::BLOOD_FOR_BLOOD, Card::INTIMIDATE, Card::HEMOKINESIS, Card::RECKLESS_CHARGE, Card::INFERNAL_BLADE, Card::DUAL_WIELD, Card::POWER_THROUGH, Card::INFLAME,Card::SPOT_WEAKNESS,
+                Card::DOUBLE_TAP, Card::DEMON_FORM, Card::BLUDGEON, Card::FEED, Card::LIMIT_BREAK, Card::CORRUPTION, Card::BARRICADE, Card::FIEND_FIRE, Card::BERSERK, Card::IMPERVIOUS, Card::JUGGERNAUT, Card::BRUTALITY, Card::REAPER, Card::EXHUME, Card::OFFERING,Card::IMMOLATE,
+        };
+
+        static constexpr std::array<Potion, 33> potions = { Potion::BLOOD_POTION, Potion::ELIXIR_POTION, Potion::HEART_OF_IRON, Potion::BLOCK_POTION, Potion::DEXTERITY_POTION, Potion::ENERGY_POTION, Potion::EXPLOSIVE_POTION, Potion::FIRE_POTION, Potion::STRENGTH_POTION, Potion::SWIFT_POTION, Potion::WEAK_POTION, Potion::FEAR_POTION, Potion::ATTACK_POTION, Potion::SKILL_POTION, Potion::POWER_POTION, Potion::COLORLESS_POTION, Potion::FLEX_POTION, Potion::SPEED_POTION, Potion::BLESSING_OF_THE_FORGE, Potion::REGEN_POTION, Potion::ANCIENT_POTION, Potion::LIQUID_BRONZE, Potion::GAMBLERS_BREW, Potion::ESSENCE_OF_STEEL, Potion::DUPLICATION_POTION, Potion::DISTILLED_CHAOS, Potion::LIQUID_MEMORIES, Potion::CULTIST_POTION, Potion::FRUIT_JUICE, Potion::SNECKO_OIL, Potion::FAIRY_POTION, Potion::SMOKE_BOMB, Potion::ENTROPIC_BREW };
+
+    };
+
+    namespace Silent {
+        static constexpr std::array<Relic, 22> bossRelicPool = {FUSION_HAMMER, VELVET_CHOKER, RUNIC_DOME, SLAVERS_COLLAR, SNECKO_EYE, PANDORAS_BOX, CURSED_KEY, BUSTED_CROWN, ECTOPLASM, TINY_HOUSE, SOZU, PHILOSOPHERS_STONE, ASTROLABE, BLACK_STAR, SACRED_BARK, EMPTY_CAGE, RUNIC_PYRAMID, CALLING_BELL, COFFEE_DRIPPER, WRIST_BLADE, HOVERING_KITE, RING_OF_THE_SERPENT};
+
+        static constexpr std::array<Card, 71> cardPool = {Card::FLYING_KNEE, Card::DODGE_AND_ROLL, Card::SUCKER_PUNCH, Card::PIERCING_WAIL, Card::PREPARED, Card::OUTMANEUVER, Card::BACKFLIP, Card::SLICE, Card::QUICK_SLASH, Card::ACROBATICS, Card::POISONED_STAB, Card::DAGGER_THROW, Card::DEFLECT, Card::BLADE_DANCE, Card::BANE, Card::DAGGER_SPRAY, Card::DEADLY_POISON, Card::SNEAKY_STRIKE, Card::CLOAK_AND_DAGGER, Card::PREDATOR, Card::ALL_OUT_ATTACK, Card::DISTRACTION, Card::FOOTWORK, Card::ACCURACY, Card::MASTERFUL_STAB, Card::FLECHETTES, Card::CONCENTRATE, Card::BOUNCING_FLASK, Card::BACKSTAB, Card::DASH, Card::EVISCERATE, Card::REFLEX, Card::INFINITE_BLADES, Card::NOXIOUS_FUMES, Card::HEEL_HOOK, Card::TERROR, Card::WELL_LAID_PLANS, Card::FINISHER, Card::ESCAPE_PLAN, Card::CALCULATED_GAMBLE, Card::SKEWER, Card::RIDDLE_WITH_HOLES, Card::ENDLESS_AGONY, Card::SETUP, Card::BLUR, Card::CALTROPS, Card::CHOKE, Card::EXPERTISE, Card::TACTICIAN, Card::CATALYST, Card::LEG_SWEEP, Card::CRIPPLING_CLOUD, Card::ALCHEMIZE, Card::CORPSE_EXPLOSION, Card::MALAISE, Card::PHANTASMAL_KILLER, Card::DIE_DIE_DIE, Card::ADRENALINE, Card::ENVENOM, Card::DOPPELGANGER, Card::BURST, Card::WRAITH_FORM, Card::TOOLS_OF_THE_TRADE, Card::NIGHTMARE, Card::UNLOAD, Card::AFTER_IMAGE, Card::BULLET_TIME, Card::STORM_OF_STEEL, Card::GLASS_KNIFE, Card::A_THOUSAND_CUTS, Card::GRAND_FINALE };
+        static constexpr std::array<Card, 20> commonCardPool = { Card::CLOAK_AND_DAGGER, Card::SNEAKY_STRIKE, Card::DEADLY_POISON, Card::DAGGER_SPRAY, Card::BANE, Card::BLADE_DANCE, Card::DEFLECT, Card::DAGGER_THROW, Card::POISONED_STAB, Card::ACROBATICS, Card::QUICK_SLASH, Card::SLICE, Card::BACKFLIP, Card::OUTMANEUVER, Card::PREPARED, Card::PIERCING_WAIL, Card::SUCKER_PUNCH, Card::DODGE_AND_ROLL, Card::FLYING_KNEE };
+        static constexpr std::array<Card, 33> uncommonCardPool = { Card::CRIPPLING_CLOUD, Card::LEG_SWEEP, Card::CATALYST, Card::TACTICIAN, Card::EXPERTISE, Card::CHOKE, Card::CALTROPS, Card::BLUR, Card::SETUP, Card::ENDLESS_AGONY, Card::RIDDLE_WITH_HOLES, Card::SKEWER, Card::CALCULATED_GAMBLE, Card::ESCAPE_PLAN, Card::FINISHER, Card::WELL_LAID_PLANS, Card::TERROR, Card::HEEL_HOOK, Card::NOXIOUS_FUMES, Card::INFINITE_BLADES, Card::REFLEX, Card::EVISCERATE, Card::DASH, Card::BACKSTAB, Card::BOUNCING_FLASK, Card::CONCENTRATE, Card::FLECHETTES, Card::MASTERFUL_STAB, Card::ACCURACY, Card::FOOTWORK, Card::DISTRACTION, Card::ALL_OUT_ATTACK, Card::PREDATOR };
+        static constexpr std::array<Card, 19> rareCardPool = { Card::GRAND_FINALE, Card::A_THOUSAND_CUTS, Card::GLASS_KNIFE, Card::STORM_OF_STEEL, Card::BULLET_TIME, Card::AFTER_IMAGE, Card::UNLOAD, Card::NIGHTMARE, Card::TOOLS_OF_THE_TRADE, Card::WRAITH_FORM, Card::BURST, Card::DOPPELGANGER, Card::ENVENOM, Card::ADRENALINE, Card::DIE_DIE_DIE, Card::PHANTASMAL_KILLER, Card::MALAISE, Card::CORPSE_EXPLOSION, Card::ALCHEMIZE };
+
+        static constexpr std::array<Potion, 33> potions = { Potion::POISON_POTION, Potion::CUNNING_POTION, Potion::GHOST_IN_A_JAR, Potion::BLOCK_POTION, Potion::DEXTERITY_POTION, Potion::ENERGY_POTION, Potion::EXPLOSIVE_POTION, Potion::FIRE_POTION, Potion::STRENGTH_POTION, Potion::SWIFT_POTION, Potion::WEAK_POTION, Potion::FEAR_POTION, Potion::ATTACK_POTION, Potion::SKILL_POTION, Potion::POWER_POTION, Potion::COLORLESS_POTION, Potion::FLEX_POTION, Potion::SPEED_POTION, Potion::BLESSING_OF_THE_FORGE, Potion::REGEN_POTION, Potion::ANCIENT_POTION, Potion::LIQUID_BRONZE, Potion::GAMBLERS_BREW, Potion::ESSENCE_OF_STEEL, Potion::DUPLICATION_POTION, Potion::DISTILLED_CHAOS, Potion::LIQUID_MEMORIES, Potion::CULTIST_POTION, Potion::FRUIT_JUICE, Potion::SNECKO_OIL, Potion::FAIRY_POTION, Potion::SMOKE_BOMB, Potion::ENTROPIC_BREW };
+    };
+
+    namespace Defect {
+        static constexpr std::array<Relic, 33> commonRelicPool = { WHETSTONE, THE_BOOT, BLOOD_VIAL, MEAL_TICKET, PEN_NIB, AKABEKO, LANTERN, REGAL_PILLOW, BAG_OF_PREPARATION, ANCIENT_TEA_SET, SMILING_MASK, POTION_BELT, PRESERVED_INSECT, OMAMORI, MAW_BANK, ART_OF_WAR, TOY_ORNITHOPTER, CERAMIC_FISH, VAJRA, CENTENNIAL_PUZZLE, STRAWBERRY, HAPPY_FLOWER, ODDLY_SMOOTH_STONE, WAR_PAINT, BRONZE_SCALES, JUZU_BRACELET, DREAM_CATCHER, NUNCHAKU, TINY_CHEST, ORICHALCUM, ANCHOR, BAG_OF_MARBLES, DATA_DISK };
+        static constexpr std::array<Relic, 30> uncommonRelicPool = { BOTTLED_TORNADO, SUNDIAL, KUNAI, PEAR, BLUE_CANDLE, ETERNAL_FEATHER, STRIKE_DUMMY, SINGING_BOWL, MATRYOSHKA, INK_BOTTLE, THE_COURIER, FROZEN_EGG, ORNAMENTAL_FAN, BOTTLED_LIGHTNING, GREMLIN_HORN, HORN_CLEAT, TOXIC_EGG, LETTER_OPENER, QUESTION_CARD, BOTTLED_FLAME, SHURIKEN, MOLTEN_EGG, MEAT_ON_THE_BONE, DARKSTONE_PERIAPT, MUMMIFIED_HAND, PANTOGRAPH, WHITE_BEAST_STATUE, MERCURY_HOURGLASS, SYMBIOTIC_VIRUS, GOLDPLATED_CABLES };
+        static constexpr std::array<Relic, 26> rareRelicPool = { GINGER, OLD_COIN, BIRDFACED_URN, UNCEASING_TOP, TORII, STONE_CALENDAR, SHOVEL, WING_BOOTS, THREAD_AND_NEEDLE, TURNIP, ICE_CREAM, CALIPERS, LIZARD_TAIL, PRAYER_WHEEL, GIRYA, DEAD_BRANCH, DUVU_DOLL, POCKETWATCH, MANGO, INCENSE_BURNER, GAMBLING_CHIP, PEACE_PIPE, CAPTAINS_WHEEL, FOSSILIZED_HELIX, EMOTION_CHIP };
+        static constexpr std::array<Relic, 22> bossRelicPool = { FUSION_HAMMER, VELVET_CHOKER, RUNIC_DOME, SLAVERS_COLLAR, SNECKO_EYE, PANDORAS_BOX, CURSED_KEY, BUSTED_CROWN, ECTOPLASM, TINY_HOUSE, SOZU, PHILOSOPHERS_STONE, ASTROLABE, BLACK_STAR, SACRED_BARK, EMPTY_CAGE, RUNIC_PYRAMID, CALLING_BELL, COFFEE_DRIPPER, INSERTER, FROZEN_CORE, NUCLEAR_BATTERY };
+
+        static constexpr std::array<Card, 71> cardPool = {Card::STEAM_BARRIER, Card::COLD_SNAP, Card::LEAP, Card::BEAM_CELL, Card::HOLOGRAM, Card::CHARGE_BATTERY, Card::SWEEPING_BEAM, Card::TURBO, Card::COOLHEADED, Card::CLAW, Card::REBOUND, Card::STACK, Card::BARRAGE, Card::COMPILE_DRIVER, Card::RECURSION, Card::STREAMLINE, Card::BALL_LIGHTNING, Card::GO_FOR_THE_EYES, Card::DOOM_AND_GLOOM, Card::DEFRAGMENT, Card::CAPACITOR, Card::WHITE_NOISE, Card::SKIM, Card::RECYCLE, Card::SCRAPE, Card::BULLSEYE, Card::REPROGRAM, Card::AUTO_SHIELDS, Card::REINFORCED_BODY, Card::DOUBLE_ENERGY, Card::DARKNESS, Card::RIP_AND_TEAR, Card::FTL, Card::FORCE_FIELD, Card::EQUILIBRIUM, Card::TEMPEST, Card::HEATSINKS, Card::STATIC_DISCHARGE, Card::BOOT_SEQUENCE, Card::CHILL, Card::LOOP, Card::SELF_REPAIR, Card::MELTER, Card::CHAOS, Card::BLIZZARD, Card::AGGREGATE, Card::FUSION, Card::CONSUME, Card::GLACIER, Card::SUNDER, Card::HELLO_WORLD, Card::OVERCLOCK, Card::GENETIC_ALGORITHM, Card::STORM, Card::MULTI_CAST, Card::HYPERBEAM, Card::THUNDER_STRIKE, Card::BIASED_COGNITION, Card::MACHINE_LEARNING, Card::ELECTRODYNAMICS, Card::BUFFER, Card::RAINBOW, Card::SEEK, Card::METEOR_STRIKE, Card::ECHO_FORM, Card::ALL_FOR_ONE, Card::REBOOT, Card::AMPLIFY, Card::CREATIVE_AI, Card::FISSION, Card::CORE_SURGE };
+        static constexpr std::array<Card, 18> commonCardPool = { Card::GO_FOR_THE_EYES, Card::BALL_LIGHTNING, Card::STREAMLINE, Card::RECURSION, Card::COMPILE_DRIVER, Card::BARRAGE, Card::STACK, Card::REBOUND, Card::CLAW, Card::COOLHEADED, Card::TURBO, Card::SWEEPING_BEAM, Card::CHARGE_BATTERY, Card::HOLOGRAM, Card::BEAM_CELL, Card::LEAP, Card::COLD_SNAP, Card::STEAM_BARRIER };
+        static constexpr std::array<Card, 36> uncommonCardPool = { Card::STORM, Card::GENETIC_ALGORITHM, Card::OVERCLOCK, Card::HELLO_WORLD, Card::SUNDER, Card::GLACIER, Card::CONSUME, Card::FUSION, Card::AGGREGATE, Card::BLIZZARD, Card::CHAOS, Card::MELTER, Card::SELF_REPAIR, Card::LOOP, Card::CHILL, Card::BOOT_SEQUENCE, Card::STATIC_DISCHARGE, Card::HEATSINKS, Card::TEMPEST, Card::EQUILIBRIUM, Card::FORCE_FIELD, Card::FTL, Card::RIP_AND_TEAR, Card::DARKNESS, Card::DOUBLE_ENERGY, Card::REINFORCED_BODY, Card::AUTO_SHIELDS, Card::REPROGRAM, Card::BULLSEYE, Card::SCRAPE, Card::RECYCLE, Card::SKIM, Card::WHITE_NOISE, Card::CAPACITOR, Card::DEFRAGMENT, Card::DOOM_AND_GLOOM };
+        static constexpr std::array<Card, 17> rareCardPool = { Card::CORE_SURGE, Card::FISSION, Card::CREATIVE_AI, Card::AMPLIFY, Card::REBOOT, Card::ALL_FOR_ONE, Card::ECHO_FORM, Card::METEOR_STRIKE, Card::SEEK, Card::RAINBOW, Card::BUFFER, Card::ELECTRODYNAMICS, Card::MACHINE_LEARNING, Card::BIASED_COGNITION, Card::THUNDER_STRIKE, Card::HYPERBEAM, Card::MULTI_CAST };
+
+        static constexpr std::array<Potion, 33> potions = { Potion::FOCUS_POTION, Potion::POTION_OF_CAPACITY, Potion::ESSENCE_OF_DARKNESS, Potion::BLOCK_POTION, Potion::DEXTERITY_POTION, Potion::ENERGY_POTION, Potion::EXPLOSIVE_POTION, Potion::FIRE_POTION, Potion::STRENGTH_POTION, Potion::SWIFT_POTION, Potion::WEAK_POTION, Potion::FEAR_POTION, Potion::ATTACK_POTION, Potion::SKILL_POTION, Potion::POWER_POTION, Potion::COLORLESS_POTION, Potion::FLEX_POTION, Potion::SPEED_POTION, Potion::BLESSING_OF_THE_FORGE, Potion::REGEN_POTION, Potion::ANCIENT_POTION, Potion::LIQUID_BRONZE, Potion::GAMBLERS_BREW, Potion::ESSENCE_OF_STEEL, Potion::DUPLICATION_POTION, Potion::DISTILLED_CHAOS, Potion::LIQUID_MEMORIES, Potion::CULTIST_POTION, Potion::FRUIT_JUICE, Potion::SNECKO_OIL, Potion::FAIRY_POTION, Potion::SMOKE_BOMB, Potion::ENTROPIC_BREW };
+    };
+
+    namespace Watcher {
+        static constexpr std::array<Relic, 21> bossRelicPool = {FUSION_HAMMER, VELVET_CHOKER, RUNIC_DOME, SLAVERS_COLLAR, SNECKO_EYE, PANDORAS_BOX, CURSED_KEY, BUSTED_CROWN, ECTOPLASM, TINY_HOUSE, SOZU, PHILOSOPHERS_STONE, ASTROLABE, BLACK_STAR, SACRED_BARK, EMPTY_CAGE, RUNIC_PYRAMID, CALLING_BELL, COFFEE_DRIPPER, HOLY_WATER, VIOLET_LOTUS};
+
+        static constexpr std::array<Card, 71> cardPool = { Card::EMPTY_FIST, Card::PROSTRATE, Card::EVALUATE, Card::CRUSH_JOINTS, Card::PRESSURE_POINTS, Card::FOLLOW_UP, Card::CUT_THROUGH_FATE, Card::SASH_WHIP, Card::EMPTY_BODY, Card::TRANQUILITY, Card::CRESCENDO, Card::THIRD_EYE, Card::PROTECT, Card::FLURRY_OF_BLOWS, Card::JUST_LUCKY, Card::HALT, Card::FLYING_SLEEVES, Card::BOWLING_BASH, Card::CONSECRATE, Card::PRAY, Card::SIGNATURE_MOVE, Card::WEAVE, Card::EMPTY_MIND, Card::NIRVANA, Card::TANTRUM, Card::CONCLUDE, Card::WORSHIP, Card::SWIVEL, Card::PERSEVERANCE, Card::MEDITATE, Card::STUDY, Card::WAVE_OF_THE_HAND, Card::SANDS_OF_TIME, Card::FEAR_NO_EVIL, Card::REACH_HEAVEN, Card::MENTAL_FORTRESS, Card::DECEIVE_REALITY, Card::RUSHDOWN, Card::INNER_PEACE, Card::COLLECT, Card::WREATH_OF_FLAME, Card::WALLOP, Card::CARVE_REALITY, Card::FASTING, Card::LIKE_WATER, Card::FOREIGN_INFLUENCE, Card::WINDMILL_STRIKE, Card::INDIGNATION, Card::BATTLE_HYMN, Card::TALK_TO_THE_HAND, Card::SANCTITY, Card::FORESIGHT, Card::SIMMERING_FURY, Card::WHEEL_KICK, Card::JUDGMENT, Card::CONJURE_BLADE, Card::MASTER_REALITY, Card::BRILLIANCE, Card::DEVOTION, Card::BLASPHEMY, Card::RAGNAROK, Card::LESSON_LEARNED, Card::SCRAWL, Card::VAULT, Card::ALPHA, Card::WISH, Card::OMNISCIENCE, Card::ESTABLISHMENT, Card::SPIRIT_SHIELD, Card::DEVA_FORM, Card::DEUS_EX_MACHINA };
+        static constexpr std::array<Card, 19> commonCardPool = { Card::CONSECRATE, Card::BOWLING_BASH, Card::FLYING_SLEEVES, Card::HALT, Card::JUST_LUCKY, Card::FLURRY_OF_BLOWS, Card::PROTECT, Card::THIRD_EYE, Card::CRESCENDO, Card::TRANQUILITY, Card::EMPTY_BODY, Card::SASH_WHIP, Card::CUT_THROUGH_FATE, Card::FOLLOW_UP, Card::PRESSURE_POINTS, Card::CRUSH_JOINTS, Card::EVALUATE, Card::PROSTRATE, Card::EMPTY_FIST };
+        static constexpr std::array<Card, 35> uncommonCardPool = { Card::WHEEL_KICK, Card::SIMMERING_FURY, Card::FORESIGHT, Card::SANCTITY, Card::TALK_TO_THE_HAND, Card::BATTLE_HYMN, Card::INDIGNATION, Card::WINDMILL_STRIKE, Card::FOREIGN_INFLUENCE, Card::LIKE_WATER, Card::FASTING, Card::CARVE_REALITY, Card::WALLOP, Card::WREATH_OF_FLAME, Card::COLLECT, Card::INNER_PEACE, Card::RUSHDOWN, Card::DECEIVE_REALITY, Card::MENTAL_FORTRESS, Card::REACH_HEAVEN, Card::FEAR_NO_EVIL, Card::SANDS_OF_TIME, Card::WAVE_OF_THE_HAND, Card::STUDY, Card::MEDITATE, Card::PERSEVERANCE, Card::SWIVEL, Card::WORSHIP, Card::CONCLUDE, Card::TANTRUM, Card::NIRVANA, Card::EMPTY_MIND, Card::WEAVE, Card::SIGNATURE_MOVE, Card::PRAY };
+        static constexpr std::array<Card, 17> rareCardPool = { Card::DEUS_EX_MACHINA, Card::DEVA_FORM, Card::SPIRIT_SHIELD, Card::ESTABLISHMENT, Card::OMNISCIENCE, Card::WISH, Card::ALPHA, Card::VAULT, Card::SCRAWL, Card::LESSON_LEARNED, Card::RAGNAROK, Card::BLASPHEMY, Card::DEVOTION, Card::BRILLIANCE, Card::MASTER_REALITY, Card::CONJURE_BLADE, Card::JUDGMENT };
+
+
+        static constexpr std::array<Potion, 33> potions = { Potion::BOTTLED_MIRACLE, Potion::STANCE_POTION, Potion::AMBROSIA, Potion::BLOCK_POTION, Potion::DEXTERITY_POTION, Potion::ENERGY_POTION, Potion::EXPLOSIVE_POTION, Potion::FIRE_POTION, Potion::STRENGTH_POTION, Potion::SWIFT_POTION, Potion::WEAK_POTION, Potion::FEAR_POTION, Potion::ATTACK_POTION, Potion::SKILL_POTION, Potion::POWER_POTION, Potion::COLORLESS_POTION, Potion::FLEX_POTION, Potion::SPEED_POTION, Potion::BLESSING_OF_THE_FORGE, Potion::REGEN_POTION, Potion::ANCIENT_POTION, Potion::LIQUID_BRONZE, Potion::GAMBLERS_BREW, Potion::ESSENCE_OF_STEEL, Potion::DUPLICATION_POTION, Potion::DISTILLED_CHAOS, Potion::LIQUID_MEMORIES, Potion::CULTIST_POTION, Potion::FRUIT_JUICE, Potion::SNECKO_OIL, Potion::FAIRY_POTION, Potion::SMOKE_BOMB, Potion::ENTROPIC_BREW };
+    };
 
 }
 

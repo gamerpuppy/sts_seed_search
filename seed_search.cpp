@@ -376,30 +376,30 @@ std::vector<std::int64_t> sts::findSinglePathSeedsMt(std::int64_t start, std::in
 }
 
 
-bool validateNeowBossPath(std::int64_t seed, Path p) {
+bool sts::validateNeowBossPath(std::int64_t seed, const Path& p) {
     GameState gameState = GameState::createGameState(seed, 0);
-    gameState.lastRoom = Room::MONSTER;
+    gameState.curRoom = Room::MONSTER;
 
-    std::cout << p.toString() << std::endl;
+//    std::cout << p.toString() << std::endl;
 
     for (int y = 1; y < 14; y++) {
         gameState.floor = y+1;
         Room room = p.roomAt(y);
 
         if (room == sts::Room::EVENT) {
-            auto res = getEventRoomEvent(gameState);
+            auto res = gameState.getEventRoomEvent();
 
             if (res == Event::MONSTER) {
-                gameState.lastRoom = Room::MONSTER;
+                gameState.curRoom = Room::MONSTER;
                 return false;
             } else if (res == Event::SHOP) {
-                gameState.lastRoom = Room::SHOP;
+                gameState.curRoom = Room::SHOP;
             } else {
-                gameState.lastRoom = Room::EVENT;
+                gameState.curRoom = Room::EVENT;
             }
 
         } else {
-            gameState.lastRoom = room;
+            gameState.curRoom = room;
 
         }
     }
@@ -423,8 +423,132 @@ bool sts::testSeedForNeowBossEvent(const std::int64_t seed) {
 }
 
 
+bool sts::testSeedForFruitJuiceNeows(const std::int64_t seed) {
+    Random neowRng(seed);
+    neowRng.random(0, 5);
+    auto reward = static_cast<Neow::Reward>(6 + neowRng.random(0, 4));
+    if (reward != Neow::Reward::THREE_SMALL_POTIONS) {
+        return false;
+    }
 
 
+    Random potionRng(seed);
+    for (int i = 0; i < 3; ++i) {
+        bool fruitJuice = potionRng.random(0,32) == 28;
+        if(!fruitJuice) {
+            return false;
+        }
+    }
+
+    int potionChance = 40;
+
+    for (int i = 0; i < 2; ++i) {
+        int roll = potionRng.random(0,99);
+        if (roll < potionChance) {
+            potionChance -= 10;
+            auto p = returnRandomPotion(potionRng, CharacterClass::IRONCLAD, false);
+            if (p != Potion::FRUIT_JUICE) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    return true;
+
+
+    return true;
+}
+
+bool sts::testSeedForCardReward(std::int64_t seed) {
+    GameState gameState = GameState::createGameState(seed, 0);
+    gameState.cardRng = Random(seed);
+    gameState.characterClass = CharacterClass::WATCHER;
+    auto arr = gameState.getRewardCards();
+
+    bool containFlex = false;
+    bool containLimitBreak = false;
+    for (int i  = 0; i < 3; ++i) {
+        if (arr[i] == Card::WALLOP) {
+            containFlex = true;
+        } else if (arr[i] == Card::TALK_TO_THE_HAND) {
+            containLimitBreak = true;
+        }
+    }
+    return containFlex && containLimitBreak;
+}
+
+
+void testSeedsMtHelper(ThreadData d) {
+    for (std::int64_t seed = d.startSeed+d.threadId; seed < d.endSeed; seed += d.threadCount) {
+        if (d.predicate(seed)) {
+            if (d.printWhenFound) {
+                std::cout << SeedHelper::getString(seed) << std::endl;
+            }
+            d.foundVec->push_back(seed);
+        }
+    }
+}
+
+std::vector<std::int64_t> sts::testSeedsMt(std::int64_t start, std::int64_t count, int threadCount, const SeedPredicate& predicate, bool printWhenFound, bool logStats) {
+    Timer timer;
+    if (logStats) {
+        timer.start();
+        std::cout << "testSeeds start: " << start << " count: " << count << std::endl;
+    }
+
+    std::thread *threads[threadCount];
+    std::vector<std::int64_t> results[threadCount];
+
+    for (int tid = 0; tid < threadCount; ++tid) {
+        ThreadData data(start, start+count, threadCount, tid, &results[tid]);
+        data.predicate = predicate;
+        data.printWhenFound = printWhenFound;
+        threads[tid] = new std::thread(testSeedsMtHelper, data);
+    }
+
+    std::vector<std::int64_t> combined;
+    for (int tid = 0; tid < threadCount; ++tid) {
+        threads[tid]->join();
+        combined.insert(combined.end(), results[tid].begin(), results[tid].end());
+        delete threads[tid];
+    }
+
+    std::sort(combined.begin(), combined.end());
+
+    if (logStats) {
+        double millis = timer.elapsedMilliseconds();
+        for (auto seed : combined) {
+            std::cout << SeedHelper::getString(seed) << '\n';
+        }
+
+        std::cout << "found: " << combined.size() << " " << (double)combined.size()*100 / count << "%" << '\n';
+        std::cout << millis << " ms" << '\n';
+        std::cout << count / millis << " seeds/ms" << std::endl;
+    }
+
+    return combined;
+
+
+//    Timer timer;
+//    timer.start();
+//    std::cout << "testSeeds start: " << start << " count: " << count << std::endl;
+//
+//    std::vector<std::int64_t> vec;
+//
+//    for (std::int64_t seed = start; seed < start + count; ++seed) {
+//        if (predicate(seed)) {
+//            vec.push_back(seed);
+//        }
+//    }
+//    double millis = timer.elapsedMilliseconds();
+//    for (auto seed : vec) {
+//        std::cout << SeedHelper::getString(seed) << '\n';
+//    }
+//    std::cout << "found: " << vec.size() << " " << (double)vec.size()*100 / count << "%" << '\n';
+//    std::cout << millis << " ms" << '\n';
+//    std::cout << count / millis << " seeds/ms" << std::endl;
+}
 
 
 

@@ -140,17 +140,69 @@ namespace sts {
     namespace Act2 {
         const std::array<Event,13> eventList { Event::ADDICT, Event::BACK_TO_BASICS, Event::BEGGAR, Event::COLOSSEUM, Event::CURSED_TOME, Event::DRUG_DEALER, Event::FORGOTTEN_ALTAR, Event::GHOSTS, Event::MASKED_BANDITS, Event::NEST, Event::THE_LIBRARY, Event::THE_MAUSOLEUM, Event::VAMPIRES };
         const std::array<Event,6> shrineList { Event::MATCH_AND_KEEP, Event::WHEEL_OF_CHANGE, Event::GOLDEN_SHRINE, Event::TRANSMORGRIFIER, Event::PURIFIER, Event::UPGRADE_SHRINE };
-
     }
 
 
+    struct CardReward {
+        int choiceCount;
+        Card cards[4];
+    };
+
+    struct Rewards {
+        int goldCount = 0;
+        int gold[2];
+
+        int cardRewardCount = 0;
+        CardReward cards[2];
+
+        int relicCount = 0;
+        Relic relics[2];
+
+        int potionCount = 0;
+        Potion potions[3];
+
+        bool emeraldKey;
+        bool sapphireKey;
+
+
+        void addGold(int goldAmt) {
+            gold[goldCount++] = goldAmt;
+        }
+
+        void addRelic(Relic relic) {
+            relics[relicCount++] = relic;
+        }
+
+        void addPotion(Potion potion) {
+            potions[potionCount++] = potion;
+        }
+
+    };
+
+
     struct GameState {
+        CharacterClass characterClass = CharacterClass::IRONCLAD;
+
         std::int64_t seed;
         std::vector<Event> eventList;
         std::vector<Event> shrineList;
         std::vector<Event> specialOneTimeEventList;
+
+        std::vector<Relic> commonRelicPool;
+        std::vector<Relic> uncommonRelicPool;
+        std::vector<Relic> rareRelicPool;
+        std::vector<Relic> shopRelicPool;
+        std::vector<Relic> bossRelicPool;
+
+        std::set<Relic> relics;
+
+        Random treasureRng = Random(0);
         Random eventRng = Random(0);
-        Room lastRoom = Room::NONE;
+        Random relicRng = Random(0);
+        Random potionRng = Random(0);
+        Random cardRng = Random(0);
+
+        Room curRoom = Room::NONE;
 
         int floor = 0;
         int curPlayerHealth = 80;
@@ -165,11 +217,12 @@ namespace sts {
         float shopChance = 0.03f;
         float treasureChance = 0.02f;
 
+        int potionChance = 0;
+        int cardChanceAdjustment = 5;
+
 
         int tinyChestCounter = 0;
 
-
-        bool skipReq_DEAD_ADVENTURER =      false;
         bool skipReq_THE_MOAI_HEAD =        false;
         bool skipReq_THE_CLERIC =           false;
         bool skipReq_BEGGAR =               false;
@@ -201,16 +254,21 @@ namespace sts {
 
 
         bool playerHasRelic(Relic relic) const {
-            return false;
+            return relics.find(relic) != relics.end();
         }
 
-        bool playerisCursed() const {
+        bool playerisCursed() const {return true;}
+
+        int playerRelicsSize() const {return 1;}
+
+        bool playerHasCardType(CardType type) const {return true;}
+
+        bool canSpawnBottledLightning() const {
+            // has skill that is not a basic
             return true;
         }
 
-        int playerRelicsSize() const {
-            return 1;
-        }
+        bool hasLessThanTwoCampfireRelics() const {return true;}
 
         void resetEventHelperProbabilities() {
             monsterChance = 0.1f;
@@ -218,11 +276,33 @@ namespace sts {
             treasureChance = 0.02f;
         }
 
+
+
+        Event getEventRoomEvent();
+        Rewards getCombatRewards(GameState &s, Room room, bool roomHasEmeraldKey=false);
+
+        bool relicCanSpawn(Relic relic) const;
+        Relic returnRandomRelic(RelicTier tier, bool front=true);
+        Relic returnNonCampfireRelic(RelicTier tier);
+
+        void addPotionToRewards(Rewards &rewards);
+
+        CardRarity rollCardRarity();
+        std::array<Card,4> getRewardCards();
+
     };
 
-    Event getEventRoomEvent(GameState &s);
+    RelicTier rollRandomRelicTier(Random &relicRng);
 
 
+    Potion returnRandomPotion(Random &potionRng, CharacterClass c, bool limited=false);
+    Potion returnRandomPotion(Random &potionRng, PotionRarity rarity, CharacterClass c, bool limited=false);
+
+    Potion getRandomPotion(Random &potionRng, CharacterClass c=CharacterClass::IRONCLAD);
+    Potion getPotionFromPool(int idx, CharacterClass characterClass);
+
+    Card getCard(Random &cardRng, CardRarity rarity, CharacterClass c);
+    Card getAnyColorCard(Random &cardRng, CardRarity rarity);
 
 }
 

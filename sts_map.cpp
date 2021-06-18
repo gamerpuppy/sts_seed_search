@@ -70,11 +70,11 @@ void initNodes(Map &map) {
 Map Map::fromSeed(std::int64_t seed, int ascension, int act) {
     Map map;
     initNodes(map);
-    Random mapRng(seed+act);
+    auto offset = act == 1 ? 1 : act*(100*(act-1));
+    Random mapRng(seed+offset);
     createPaths(map, mapRng);
     filterRedundantEdgesFromFirstRow(map);
     assignRooms(map, mapRng, ascension);
-    map.normalizeParents();
     return map;
 }
 
@@ -149,7 +149,16 @@ Path Path::addRoom(Room room, int y) const {
     return ret;
 }
 
-std::string Path::toString() const {
+std::string Path::toString(int begin, int end) const {
+    std::string str;
+    for (int y = begin; y < end; ++y) {
+        Room room = roomAt(y);
+        str += getRoomSymbol(room);
+    }
+    return str;
+}
+
+std::string Path::toPrettyString() const {
     std::string str;
     for (int y = 0; y < 14; ++y) {
         Room room = roomAt(y);
@@ -1232,6 +1241,28 @@ std::set<Path> sts::getPathsMatching(const Map &map, const PathBuilderPredicate 
 
     return paths;
 }
+
+Path sts::getLeftMostPath(const Map &map, int length) {
+    Path path;
+    for (int x = 0; x < 7; ++x) {
+        auto node = map.getNode(x,0);
+        if (node.edgeCount > 0) {
+            path = path.addRoom(node.room, 0);
+            break;
+        }
+    }
+    for (int y = 0; y < length; ++y) {
+        for (int x = 0; x < 7; ++x) {
+            auto node = map.getNode(x,y);
+            if (node.parentCount > 0) {
+                path = path.addRoom(node.room, y);
+                break;
+            }
+        }
+    }
+    return path;
+}
+
 
 void sts::mapTest(std::int64_t seed) {
     Random mapRng(seed+1);

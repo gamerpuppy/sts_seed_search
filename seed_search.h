@@ -6,10 +6,57 @@
 #include <array>
 #include <functional>
 #include <utility>
+#include <chrono>
 
 #include "sts_impl.h"
 
 namespace sts {
+
+    class Timer
+    {
+    public:
+        void start()
+        {
+            m_StartTime = std::chrono::system_clock::now();
+            m_bRunning = true;
+        }
+
+        void stop()
+        {
+            m_EndTime = std::chrono::system_clock::now();
+            m_bRunning = false;
+        }
+
+        double elapsedMilliseconds()
+        {
+            std::chrono::time_point<std::chrono::system_clock> endTime;
+
+            if(m_bRunning)
+            {
+                endTime = std::chrono::system_clock::now();
+            }
+            else
+            {
+                endTime = m_EndTime;
+            }
+
+            return std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_StartTime).count();
+        }
+
+        double elapsedSeconds()
+        {
+            return elapsedMilliseconds() / 1000.0;
+        }
+
+    private:
+        std::chrono::time_point<std::chrono::system_clock> m_StartTime;
+        std::chrono::time_point<std::chrono::system_clock> m_EndTime;
+        bool                                               m_bRunning = false;
+    };
+
+    typedef std::function<bool(std::int64_t)> SeedPredicate;
+
+
 
     struct ThreadData {
         std::int64_t startSeed;
@@ -17,6 +64,9 @@ namespace sts {
         int threadCount;
         int threadId;
         std::vector<std::int64_t> *foundVec;
+        bool printWhenFound = false;
+        SeedPredicate predicate;
+
 
         ThreadData(int64_t startSeed, int64_t endSeed, int threadCount, int threadId,
                    std::vector<int64_t> *foundVec) : startSeed(startSeed), endSeed(endSeed), threadCount(threadCount),
@@ -42,8 +92,10 @@ namespace sts {
         std::int64_t end;
         std::int32_t stride;
 
-};
+    };
+
     void runSearch(SearchConfig config);
+
     std::vector<std::int64_t> runSearch2(const std::vector<candidate> &candidates);
 
 
@@ -52,16 +104,23 @@ namespace sts {
     void test();
 
 
+    std::vector<std::int64_t>
+    findSinglePathSeedsMt(std::int64_t start, std::int64_t count, int threadCount, int length);
 
-    std::vector<std::int64_t> findSinglePathSeedsMt(std::int64_t start, std::int64_t count, int threadCount, int length);
 
 
-    bool testSeedForNeowBossEvent(std::int64_t  seed);
 
-    typedef std::function<bool(std::int64_t)> SeedPredicate;
+    class Path;
+    bool validateNeowBossPath(std::int64_t seed, const Path &p);
+    bool testSeedForNeowBossEvent(std::int64_t seed);
+
+    bool testSeedForCardReward(std::int64_t seed);
+
+    bool testSeedForFruitJuiceNeows(std::int64_t);
+
+    std::vector<std::int64_t> testSeedsMt(std::int64_t start, std::int64_t count, int threadCount, const SeedPredicate& predicate, bool printWhenFound=false, bool logStats=false);
+
 
 }
-
-
 
 #endif //STS_SEED_SEARCH_SEED_SEARCH_H

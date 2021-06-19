@@ -179,6 +179,29 @@ namespace sts {
 
     };
 
+    struct RelicShopItem {
+        Relic relic;
+        bool upgraded;
+        int cost;
+    };
+
+    struct CardShopItem {
+        Card card;
+        bool upgraded;
+        int cost;
+    };
+
+    struct PotionShopItem {
+        Potion potion;
+        int cost;
+    };
+
+    struct ShopScreen {
+        std::array<RelicShopItem,3> relics;
+        std::array<CardShopItem, 7> cards;
+        std::array<PotionShopItem, 3> potions;
+        int cardRemovalCost;
+    };
 
     struct GameState {
         CharacterClass characterClass = CharacterClass::IRONCLAD;
@@ -235,6 +258,12 @@ namespace sts {
         bool skipReq_SECRET_PORTAL =            false;
         bool skipReq_THE_JOUST =                false;
 
+    private:
+        void initCards(ShopScreen &shop);
+
+
+
+    public:
         static GameState createGameState(std::int64_t seed, int ascension) {
             GameState ret;
             ret.seed = seed;
@@ -277,6 +306,7 @@ namespace sts {
         }
 
 
+        ShopScreen getShopScreen();
 
         Event getEventRoomEvent();
         Rewards getCombatRewards(GameState &s, Room room, bool roomHasEmeraldKey=false);
@@ -289,11 +319,9 @@ namespace sts {
 
         CardRarity rollCardRarity();
         std::array<Card,4> getRewardCards();
-
     };
 
     RelicTier rollRandomRelicTier(Random &relicRng);
-
 
     Potion returnRandomPotion(Random &potionRng, CharacterClass c, bool limited=false);
     Potion returnRandomPotion(Random &potionRng, PotionRarity rarity, CharacterClass c, bool limited=false);
@@ -301,6 +329,7 @@ namespace sts {
     Potion getRandomPotion(Random &potionRng, CharacterClass c=CharacterClass::IRONCLAD);
     Potion getPotionFromPool(int idx, CharacterClass characterClass);
 
+    Card getRandomCard(Random &cardRng, CardRarity rarity, CardType type, CharacterClass c);
     Card getCard(Random &cardRng, CardRarity rarity, CharacterClass c);
     Card getAnyColorCard(Random &cardRng, CardRarity rarity);
 

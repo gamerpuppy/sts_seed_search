@@ -566,7 +566,6 @@ std::array<Card, 4> GameState::getRewardCards() {
     return cardReward;
 }
 
-
 Card getIroncladCard(Random &cardRng, CardRarity rarity) {
     switch (rarity) {
 
@@ -591,7 +590,7 @@ Card getIroncladCard(Random &cardRng, CardRarity rarity) {
         }
 
         default:
-            return Card::NONE;
+            return Card::INVALID;
     }
 }
 
@@ -619,7 +618,7 @@ Card getSilentCard(Random &cardRng, CardRarity rarity) {
         }
 
         default:
-            return Card::NONE;
+            return Card::INVALID;
     }
 }
 
@@ -647,7 +646,7 @@ Card getDefectCard(Random &cardRng, CardRarity rarity) {
         }
 
         default:
-            return Card::NONE;
+            return Card::INVALID;
     }
 }
 
@@ -675,7 +674,7 @@ Card getWatcherCard(Random &cardRng, CardRarity rarity) {
         }
 
         default:
-            return Card::NONE;
+            return Card::INVALID;
     }
 }
 
@@ -685,7 +684,7 @@ Card sts::getCard(Random &cardRng, CardRarity rarity, CharacterClass c) {
         case CharacterClass::SILENT:    return getSilentCard(cardRng, rarity);
         case CharacterClass::DEFECT:    return getDefectCard(cardRng, rarity);
         case CharacterClass::WATCHER:   return getWatcherCard(cardRng, rarity);
-        default: return sts::Card::NONE;
+        default: return sts::Card::INVALID;
     }
 }
 
@@ -706,100 +705,110 @@ Card sts::getAnyColorCard(Random &cardRng, CardRarity rarity) {
             return allColorRareCards.at(idx);
         }
 
-        default: return Card::NONE;
+        default: return Card::INVALID;
     }
 }
 
+ShopScreen GameState::getShopScreen() {
+    ShopScreen shopScreen;
+    initCards(shopScreen);
+    return shopScreen;
+}
+
+
+void GameState::initCards(ShopScreen &shop) {
+
+//        for(i = 0; i < this.coloredCards.size(); ++i) {
+//            tmpPrice = (float)AbstractCard.getPrice(((AbstractCard)this.coloredCards.get(i)).rarity) * AbstractDungeon.merchantRng.random(0.9F, 1.1F);
+//            c = (AbstractCard)this.coloredCards.get(i);
+//            c.price = (int)tmpPrice;
+//            c.current_x = (float)(Settings.WIDTH / 2);
+//            c.target_x = DRAW_START_X + AbstractCard.IMG_WIDTH_S / 2.0F + padX * (float)i;
+//            var6 = AbstractDungeon.player.relics.iterator();
 //
-//public static ArrayList<AbstractCard> getRewardCards() {
-//    ArrayList<AbstractCard> retVal = new ArrayList();
-//    int numCards = 3;
+//            while(var6.hasNext()) {
+//                r = (AbstractRelic)var6.next();
+//                r.onPreviewObtainCard(c);
+//            }
+//        }
+
+
+
+//    getCard(cardRng, rollCardRarity(),
+
+//    AbstractCard c;
+//    for(c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.ATTACK, true).makeCopy(); c.color == CardColor.COLORLESS; c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.ATTACK, true).makeCopy()) {
+//    }
 //
+//    this.cards1.add(c);
+//
+//    for(c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.ATTACK, true).makeCopy(); Objects.equals(c.cardID, ((AbstractCard)this.cards1.get(this.cards1.size() - 1)).cardID) || c.color == CardColor.COLORLESS; c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.ATTACK, true).makeCopy()) {
+//    }
+//
+//    this.cards1.add(c);
+//
+//    for(c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.SKILL, true).makeCopy(); c.color == CardColor.COLORLESS; c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.SKILL, true).makeCopy()) {
+//    }
+//
+//    this.cards1.add(c);
+//
+//    for(c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.SKILL, true).makeCopy(); Objects.equals(c.cardID, ((AbstractCard)this.cards1.get(this.cards1.size() - 1)).cardID) || c.color == CardColor.COLORLESS; c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.SKILL, true).makeCopy()) {
+//    }
+//
+//    this.cards1.add(c);
+//
+//    for(c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.POWER, true).makeCopy(); c.color == CardColor.COLORLESS; c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.POWER, true).makeCopy()) {
+//    }
+
+
+
+}
+
+
+
+
+//private void initCards() {
+//    int i;
+//    float tmpPrice;
+//    AbstractCard c;
+//    Iterator var6;
 //    AbstractRelic r;
-//    for(Iterator var2 = player.relics.iterator(); var2.hasNext(); numCards = r.changeNumberOfCardsInReward(numCards)) {
-//        r = (AbstractRelic)var2.next();
-//    }
+//    for(i = 0; i < this.coloredCards.size(); ++i) {
+//        tmpPrice = (float)AbstractCard.getPrice(((AbstractCard)this.coloredCards.get(i)).rarity) * AbstractDungeon.merchantRng.random(0.9F, 1.1F);
+//        c = (AbstractCard)this.coloredCards.get(i);
+//        c.price = (int)tmpPrice;
+//        c.current_x = (float)(Settings.WIDTH / 2);
+//        c.target_x = DRAW_START_X + AbstractCard.IMG_WIDTH_S / 2.0F + padX * (float)i;
+//        var6 = AbstractDungeon.player.relics.iterator();
 //
-//    if (ModHelper.isModEnabled("Binary")) {
-//        --numCards;
-//    }
-//
-//    AbstractCard card;
-//    for(int i = 0; i < numCards; ++i) {
-//        CardRarity rarity = rollRarity();
-//        card = null;
-//        switch(rarity) {
-//            case COMMON:
-//                cardBlizzRandomizer -= cardBlizzGrowth;
-//                if (cardBlizzRandomizer <= cardBlizzMaxOffset) {
-//                    cardBlizzRandomizer = cardBlizzMaxOffset;
-//                }
-//            case UNCOMMON:
-//                break;
-//            case RARE:
-//                cardBlizzRandomizer = cardBlizzStartOffset;
-//                break;
-//            default:
-//                logger.info("WTF?");
-//        }
-//
-//        boolean containsDupe = true;
-//
-//        while(true) {
-//            while(containsDupe) {
-//                containsDupe = false;
-//                if (player.hasRelic("PrismaticShard")) {
-//                    card = CardLibrary.getAnyColorCard(rarity);
-//                } else {
-//                    card = getCard(rarity);
-//                }
-//
-//                Iterator var6 = retVal.iterator();
-//
-//                while(var6.hasNext()) {
-//                    AbstractCard c = (AbstractCard)var6.next();
-//                    if (c.cardID.equals(card.cardID)) {
-//                        containsDupe = true;
-//                        break;
-//                    }
-//                }
-//            }
-//
-//            if (card != null) {
-//                retVal.add(card);
-//            }
-//            break;
+//        while(var6.hasNext()) {
+//            r = (AbstractRelic)var6.next();
+//            r.onPreviewObtainCard(c);
 //        }
 //    }
 //
-//    ArrayList<AbstractCard> retVal2 = new ArrayList();
-//    Iterator var11 = retVal.iterator();
+//    for(i = 0; i < this.colorlessCards.size(); ++i) {
+//        tmpPrice = (float)AbstractCard.getPrice(((AbstractCard)this.colorlessCards.get(i)).rarity) * AbstractDungeon.merchantRng.random(0.9F, 1.1F);
+//        tmpPrice *= 1.2F;
+//        c = (AbstractCard)this.colorlessCards.get(i);
+//        c.price = (int)tmpPrice;
+//        c.current_x = (float)(Settings.WIDTH / 2);
+//        c.target_x = DRAW_START_X + AbstractCard.IMG_WIDTH_S / 2.0F + padX * (float)i;
+//        var6 = AbstractDungeon.player.relics.iterator();
 //
-//    while(var11.hasNext()) {
-//        card = (AbstractCard)var11.next();
-//        retVal2.add(card.makeCopy());
-//    }
-//
-//    var11 = retVal2.iterator();
-//
-//    while(true) {
-//        while(var11.hasNext()) {
-//            card = (AbstractCard)var11.next();
-//            if (card.rarity != CardRarity.RARE && cardRng.randomBoolean(cardUpgradedChance) && card.canUpgrade()) {
-//                card.upgrade();
-//            } else {
-//                Iterator var12 = player.relics.iterator();
-//
-//                while(var12.hasNext()) {
-//                    AbstractRelic r = (AbstractRelic)var12.next();
-//                    r.onPreviewObtainCard(card);
-//                }
-//            }
+//        while(var6.hasNext()) {
+//            r = (AbstractRelic)var6.next();
+//            r.onPreviewObtainCard(c);
 //        }
-//
-//        return retVal2;
 //    }
+//
+//    AbstractCard saleCard = (AbstractCard)this.coloredCards.get(AbstractDungeon.merchantRng.random(0, 4));
+//    saleCard.price /= 2;
+//    this.saleTag = new OnSaleTag(saleCard);
+//    this.setStartingCardPositions();
 //}
+
+
 
 
 

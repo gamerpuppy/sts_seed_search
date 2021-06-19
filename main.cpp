@@ -404,8 +404,145 @@ bool testSeedForMinCombats(const std::int64_t seed) {
     return !candidatePaths2.empty();
 }
 
+//void asdf(CardColor color, CardType type, CardRarity rarity) {
+//
+////    int count = 0;
+////    std::cout << "SkillsCardArray { ";
+////    for (int i = 0; i < CardPools::cardPool.at((int)color).size(); ++i) {
+////        auto card = CardPools::cardPool.at((int)color).at(i);
+////        bool matches = cardTypes[(int)card] == type &&
+////                       cardColors[(int)card] == color &&
+////                       cardRarities[(int)card] == rarity;
+////
+////        if (matches) {
+////            std::cout << "Card::" << cardEnumNames[(int)card] << ",";
+////            ++count;
+////        }
+////    }
+////    std::cout << " },\n";
+////    std::cout << count << '\n';
+//}
+
+
+// red { attacks {common uncommon rare} skills {common uncommon rare} powers {common uncommon rare} }
+// green { attacks {common uncommon rare} skills {common uncommon rare} powers {common uncommon rare} }
+// blue { attacks {common uncommon rare} skills {common uncommon rare} powers {common uncommon rare} }
+// purple { attacks {common uncommon rare} skills {common uncommon rare} powers {common uncommon rare} }
+
+
+#include <cstring>
+
+bool cardLessThanById(Card a, Card b) {
+    int ia = (int)a;
+    int ib = (int)b;
+
+
+    auto ac = cardIds[ia];
+    auto bc = cardIds[ib];
+
+    int res = std::strcmp(ac, bc);
+
+    return res == -1;
+}
+
+
+int startIndices[4][3][3];
+int groupSize[4][3][3];
+
+void asdf4(const std::vector<Card> &allSorted, std::vector<Card> &outCards, CardColor color, CardType type, CardRarity rarity) {
+
+    int startIdx = static_cast<int>(outCards.size());
+    startIndices[(int)color][(int)type][(int)rarity] = startIdx;
+
+
+    for (auto card : allSorted) {
+        auto idx = (int)card;
+
+        bool matches = cardColors[idx] == color &&
+                cardTypes[idx] == type &&
+                cardRarities[idx] == rarity;
+        if (matches) {
+            outCards.push_back(card);
+        }
+    }
+
+    int size = static_cast<int>(outCards.size())-startIdx;
+    groupSize[(int)color][(int)type][(int)rarity] = size;
+
+}
+
+void asdf2() {
+    std::vector<Card> allSorted;
+    for (int i = 1; i < 371; ++i) {
+        Card c = static_cast<Card>(i);
+
+        allSorted.push_back(c);
+    }
+
+    std::sort(allSorted.begin(), allSorted.end(), cardLessThanById);
+
+    for (auto card : allSorted) {
+        std::cout << cardIds[(int)card] << '\n';
+    }
+
+
+    std::vector<Card> outCards;
+
+    for (int colorIdx = 0; colorIdx < 4; ++colorIdx) {
+        CardColor color = (CardColor)colorIdx;
+        for (int typeIdx = 0; typeIdx < 3; ++typeIdx) {
+            CardType type = (CardType)typeIdx;
+            for (int rarityIdx = 0; rarityIdx < 3; ++rarityIdx) {
+                CardRarity rarity = (CardRarity)rarityIdx;
+                asdf4(allSorted, outCards, color, type, rarity);
+            }
+        }
+    }
+
+
+}
+
+
+
+
 
 int main(int argc, const char ** argv) {
+
+//    std::cout << sizeof(cardIds) / sizeof (const char*) << '\n';
+
+
+    asdf2();
+
+    std::cout << "{";
+    for (int c = 0; c < 4; ++c) {
+        std::cout << "{";
+        for (int t = 0; t < 3; ++t) {
+            std::cout << "{";
+            for (int r = 0; r < 3; ++r) {
+                std::cout << startIndices[c][t][r] << ",";
+            }
+            std::cout << "}";
+        }
+        std::cout << "}";
+    }
+    std::cout << "}";
+
+
+    std::cout << '\n';
+
+    std::cout << "{";
+    for (int c = 0; c < 4; ++c) {
+        std::cout << "{";
+        for (int t = 0; t < 3; ++t) {
+            std::cout << "{";
+            for (int r = 0; r < 3; ++r) {
+                std::cout << groupSize[c][t][r] << ",";
+            }
+            std::cout << "}";
+        }
+        std::cout << "}";
+    }
+    std::cout << "}";
 
 //    std::int64_t seed = SeedHelper::getLong("69WKC6PKQJ95");
 //    Map map = Map::fromSeed(seed, 0, 2);
@@ -436,6 +573,7 @@ int main(int argc, const char ** argv) {
 
 //    readSinglePathSeeds();
 //    testSeeds(8225124566,1e9, testSeedForMinCombats);
+
 
 
 

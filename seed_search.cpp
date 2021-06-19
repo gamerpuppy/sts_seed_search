@@ -135,7 +135,7 @@ PandorasBoxRewardResult analyzePandorasBoxRewards(std::int64_t seed, CharacterCl
 
     PandorasBoxRewardResult ret;
     ret.count = maxSameLastCardCount;
-    ret.name = sts::normalCardNames[(int)maxCard];
+    ret.name = sts::cardNames[(int)maxCard];
     return ret;
 }
 

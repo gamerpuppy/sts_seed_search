@@ -2,9 +2,63 @@
 // Created by keega on 6/13/2021.
 //
 
+#include <cmath>
 #include "sts_events.h"
 
+#include <sstream>
+
 using namespace sts;
+
+void appendCardReward(std::stringstream &ss, CardReward cardReward) {
+    ss << "{ ";
+    for (int i = 0; i < 4; ++i) {
+        Card c = cardReward.cards[i];
+
+        if (c == sts::Card::INVALID) {
+            break;
+        }
+
+        ss << cardNames[(int)c] << ", ";
+    }
+    ss << "}";
+}
+
+
+
+std::string Rewards::toString() const {
+    std::stringstream ss;
+    ss << "Reward {\n";
+    for (int i = 0; i < cardRewardCount; ++i) {
+        appendCardReward(ss, cards[i]);
+        ss << '\n';
+    }
+
+    for (int i = 0; i < goldRewardCount; ++i) {
+        auto g = gold[i];
+        ss << std::to_string(g) << "g" << '\n';
+    }
+
+    for (int i = 0; i < potionCount; ++i) {
+        auto p = potions[i];
+        ss << potionNames[(int)p] << '\n';
+    }
+
+    for (int i = 0; i < relicCount; ++i) {
+        auto r = relics[i];
+        ss << relicNames[r] << '\n';
+    }
+
+    if (emeraldKey) {
+        ss << "emerald key\n";
+    }
+    if (sapphireKey) {
+        ss << "sapphire key\n";
+    }
+
+    ss << "}\n";
+
+    return ss.str();
+}
 
 
 bool canAddShrine(Event event, const GameState &s) {
@@ -132,7 +186,7 @@ Event generateEvent(Random rng, GameState &s) {
 }
 
 
-Room roll(GameState &s) {
+Room roll(GameState &s, Room room) {
     float roll = s.eventRng.random();
     Room choice = Room::NONE;
 
@@ -146,7 +200,7 @@ Room roll(GameState &s) {
 
     if (choice != sts::Room::TREASURE) {
         int monsterSize = (int) (s.monsterChance * 100);
-        int shopSize = (s.curRoom == sts::Room::SHOP ? 0 : (int) (s.shopChance * 100)) + monsterSize;
+        int shopSize = (room == sts::Room::SHOP ? 0 : (int) (s.shopChance * 100)) + monsterSize;
         int treasureSize = (int) (s.treasureChance * 100) + shopSize;
 
         int idx = (int) (roll * 100);
@@ -186,9 +240,51 @@ Room roll(GameState &s) {
     return choice;
 }
 
+std::string ShopScreen::toString(bool withPrices) const {
+    std::stringstream ss;
+    ss << "Shop { ";
+    ss << '\n';
+    for (int i = 0; i < cards.size(); ++i) {
+        Card c = cards[i].card;
+        ss << cardNames[(int)c];
+        if (withPrices) {
+            ss << ":";
+            ss << std::to_string(cards[i].price);
+        }
+        ss << ", ";
+    }
+    ss << '\n';
+
+    for (int i = 0; i < relics.size(); ++i) {
+        Relic r = relics[i].relic;
+
+        ss << relicNames[(int)r];
+        if (withPrices) {
+            ss << ":";
+            ss << relics[i].price;
+        }
+        ss << ", ";
+    }
+    ss << '\n';
+    for (int i = 0; i < potions.size(); ++i) {
+        Potion p = potions[i].potion;
+
+        ss << potionNames[(int)p];
+        if (withPrices) {
+            ss << ":";
+            ss << potions[i].price;
+        }
+        ss << ", ";
+    }
+    ss << '\n';
+    ss << " }";
+
+    return ss.str();
+}
+
 
 Event GameState::getEventRoomEvent() {
-        auto res = roll(*this);
+        auto res = roll(*this, Room::EVENT);
         switch (res) {
             case Room::EVENT: {
                 auto event = generateEvent(eventRng, *this);
@@ -209,22 +305,22 @@ Event GameState::getEventRoomEvent() {
 
 
 
-Rewards GameState::getCombatRewards(GameState &s, Room room, bool roomHasEmeraldKey) {
+Rewards GameState::getCombatRewards(Room room, bool roomHasEmeraldKey) {
     Rewards rewards;
     if (room == sts::Room::MONSTER) {
-        rewards.addGold(s.treasureRng.random(10,20));
+        rewards.addGold(treasureRng.random(10,20));
 
     } else if (room == sts::Room::ELITE){
-        rewards.addGold(s.treasureRng.random(25,35));
-        rewards.addRelic(returnRandomRelic(rollRandomRelicTier(s.relicRng)));
+        rewards.addGold(treasureRng.random(25,35));
+        rewards.addRelic(returnRandomRelic(rollRelicTier(relicRng), room));
         if (playerHasRelic(BLACK_STAR)) {
-            rewards.addRelic(returnNonCampfireRelic(rollRandomRelicTier(s.relicRng)));
+            rewards.addRelic(returnNonCampfireRelic(rollRelicTier(relicRng), room));
         }
         rewards.emeraldKey = roomHasEmeraldKey;
 
     } else {
         // room == BOSS
-        Random miscRng(s.seed+s.floor);
+        Random miscRng(seed+floor);
         int goldReward = 100 + miscRng.random(-5,5);
         rewards.addGold(goldReward);
     }
@@ -232,14 +328,24 @@ Rewards GameState::getCombatRewards(GameState &s, Room room, bool roomHasEmerald
     // not if the act is beyond or ending??
     addPotionToRewards(rewards);
 
+
     // cards
+    // if !event.noCardsInRewards and not treasure Room or rest room and other conditions
+    rewards.cards[0] = getCardReward();
+    rewards.cardRewardCount = 1;
+//    if (room == Room::BOSS) {
+//
+//
+//    } else {
+//
+//
+//    }
+
 
     return rewards;
 }
 
-
-
-bool GameState::relicCanSpawn(Relic relic) const {
+bool GameState::relicCanSpawn(Relic relic, Room room) const {
     switch (relic) {
 
         case FROZEN_CORE:
@@ -272,7 +378,7 @@ bool GameState::relicCanSpawn(Relic relic) const {
         case MAW_BANK:
         case OLD_COIN:
         case SMILING_MASK:
-            return floor <= 48 && curRoom != Room::SHOP;
+            return floor <= 48 && room != Room::SHOP;
 
         case ANCIENT_TEA_SET:
         case CERAMIC_FISH:
@@ -302,7 +408,7 @@ bool GameState::relicCanSpawn(Relic relic) const {
 }
 
 // MonsterRoomElite
-RelicTier sts::rollRandomRelicTier(Random &relicRng) {
+RelicTier sts::rollRelicTier(Random &relicRng) {
     int roll = relicRng.random(0,99);
     if (roll < 50) {
         return RelicTier::COMMON;
@@ -313,7 +419,7 @@ RelicTier sts::rollRandomRelicTier(Random &relicRng) {
     }
 }
 
-Relic GameState::returnRandomRelic(RelicTier tier, bool front) {
+Relic GameState::returnRandomRelic(RelicTier tier, Room room, bool front) {
 
     Relic retVal = INVALID;
     std::vector<Relic> *vec;
@@ -322,7 +428,7 @@ Relic GameState::returnRandomRelic(RelicTier tier, bool front) {
 
         case RelicTier::COMMON:
             if (commonRelicPool.empty()) {
-                retVal = returnRandomRelic(RelicTier::UNCOMMON);
+                retVal = returnRandomRelic(RelicTier::UNCOMMON, room);
             } else {
                 vec = &commonRelicPool;
             }
@@ -330,7 +436,7 @@ Relic GameState::returnRandomRelic(RelicTier tier, bool front) {
 
         case RelicTier::UNCOMMON:
             if (uncommonRelicPool.empty()) {
-                retVal = returnRandomRelic(RelicTier::RARE);
+                retVal = returnRandomRelic(RelicTier::RARE, room);
             } else {
                 vec = &uncommonRelicPool;
             }
@@ -338,7 +444,7 @@ Relic GameState::returnRandomRelic(RelicTier tier, bool front) {
 
         case RelicTier::RARE:
             if (rareRelicPool.empty()) {
-                retVal = Relic::CIRCLET;
+                retVal = CIRCLET;
             } else {
                 vec = &rareRelicPool;
             }
@@ -346,7 +452,7 @@ Relic GameState::returnRandomRelic(RelicTier tier, bool front) {
 
         case RelicTier::SHOP:
             if (shopRelicPool.empty()) {
-                retVal = returnRandomRelic(RelicTier::UNCOMMON);
+                retVal = returnRandomRelic(RelicTier::UNCOMMON, room);
             } else {
                 vec = &shopRelicPool;
             }
@@ -374,11 +480,11 @@ Relic GameState::returnRandomRelic(RelicTier tier, bool front) {
         }
     }
 
-    bool canSpawn = relicCanSpawn(retVal);
+    bool canSpawn = relicCanSpawn(retVal, room);
     if (canSpawn) {
         return retVal;
     } else {
-        return returnRandomRelic(tier, false);
+        return returnRandomRelic(tier, room, false);
     }
 }
 
@@ -386,10 +492,10 @@ bool isCampfireRelic(Relic r) {
     return r == PEACE_PIPE || r == SHOVEL || r == GIRYA;
 }
 
-Relic GameState::returnNonCampfireRelic(RelicTier tier) {
+Relic GameState::returnNonCampfireRelic(RelicTier tier, Room room) {
     Relic relic;
     do {
-        relic = returnRandomRelic(tier);
+        relic = returnRandomRelic(tier, room);
     } while(isCampfireRelic(relic));
     return relic;
 }
@@ -430,23 +536,17 @@ Potion sts::getRandomPotion(Random &potionRng, CharacterClass c) {
 }
 
 void GameState::addPotionToRewards(Rewards &rewards) {
-    int chance = 0;
-    if (curRoom == Room::ELITE ||
-        curRoom == Room::MONSTER ||
-        curRoom == Room::EVENT
-    ) {
-        // if normal and monsters can not have escaped
-        chance = 40 + potionChance;
-    }
+    // assume if in a monsters room, they didnt escape
+    int chance = 40 + potionChance;
 
     if (playerHasRelic(WHITE_BEAST_STATUE)) {
         chance = 100;
     }
 
-    // todo ?
-//    if (rewards.size() >= 4) {
-//        chance = 0;
-//    }
+    int rewardsSize = rewards.potionCount + rewards.relicCount + rewards.goldRewardCount + rewards.cardRewardCount;
+    if (rewardsSize >= 4) {
+        chance = 0;
+    }
 
     if (potionRng.random(99) >= chance) {
         potionChance += 10;
@@ -494,17 +594,37 @@ CardRarity GameState::rollCardRarity() {
 
     if (roll < rareCardChance) {
         return CardRarity::RARE;
-    } else if (roll < rareCardChance + BASE_UNCOMMON_CHANCE) {
-        return CardRarity::UNCOMMON;
-    } else {
+
+    } else if (roll >= rareCardChance + BASE_UNCOMMON_CHANCE) {
+
         return CardRarity::COMMON;
+
+    } else {
+        return CardRarity::UNCOMMON;
+    }
+}
+
+CardRarity GameState::rollCardRarityShop() {
+    static constexpr int BASE_RARE_CHANCE = 9;
+    static constexpr int BASE_UNCOMMON_CHANCE = 37;
+
+    int roll = cardRng.random(99);
+    roll += cardChanceAdjustment;
+
+    if (roll < BASE_RARE_CHANCE) {
+        return CardRarity::RARE;
+
+    } else if (roll >= BASE_RARE_CHANCE + BASE_UNCOMMON_CHANCE) {
+
+        return CardRarity::COMMON;
+
+    } else {
+        return CardRarity::UNCOMMON;
     }
 }
 
 
-
-
-std::array<Card, 4> GameState::getRewardCards() {
+CardReward GameState::getCardReward() {
     int numCards = 3;
     if (playerHasRelic(QUESTION_CARD)) {
         numCards += 1;
@@ -563,8 +683,10 @@ std::array<Card, 4> GameState::getRewardCards() {
         }
     }
 
-    return cardReward;
+    CardReward reward{numCards, cardReward};
+    return reward;
 }
+
 
 Card getIroncladCard(Random &cardRng, CardRarity rarity) {
     switch (rarity) {
@@ -709,107 +831,92 @@ Card sts::getAnyColorCard(Random &cardRng, CardRarity rarity) {
     }
 }
 
+Card sts::getColorlessCardFromPool(Random &cardRng, CardRarity rarity) {
+    int size = CardPools::getColorlessGroupSize(rarity);
+    int idx = cardRng.random(size-1);
+    return CardPools::getColorlessCardAt(rarity, idx);
+}
+
+Card sts::getRandomCard(Random &cardRng, CardType type, CardRarity rarity, CharacterClass c) {
+    int size = CardPools::getGroupSize(c, type, rarity);
+    int idx = cardRng.random(size-1);
+    return CardPools::getCardAt(c, type, rarity, idx);
+}
+
+void shopAssignRandomCardExluding(GameState &gs, CardType type, Card excludeCard, Card &card, CardRarity &rarity) {
+    do {
+        rarity = gs.rollCardRarityShop();
+        card = getRandomCard(gs.cardRng, type, rarity, gs.characterClass);
+    }while (card == excludeCard);
+}
+
 ShopScreen GameState::getShopScreen() {
     ShopScreen shopScreen;
-    initCards(shopScreen);
+    shopInitCards(shopScreen);
+    shopInitRelics(shopScreen);
+    shopInitPotions(shopScreen);
     return shopScreen;
 }
 
+void GameState::shopInitCards(ShopScreen &shop) {
+    CardRarity rarities[5];
 
-void GameState::initCards(ShopScreen &shop) {
+    shop.cards[1] = CardShopItem();
+    shop.cards[3] = CardShopItem();
 
-//        for(i = 0; i < this.coloredCards.size(); ++i) {
-//            tmpPrice = (float)AbstractCard.getPrice(((AbstractCard)this.coloredCards.get(i)).rarity) * AbstractDungeon.merchantRng.random(0.9F, 1.1F);
-//            c = (AbstractCard)this.coloredCards.get(i);
-//            c.price = (int)tmpPrice;
-//            c.current_x = (float)(Settings.WIDTH / 2);
-//            c.target_x = DRAW_START_X + AbstractCard.IMG_WIDTH_S / 2.0F + padX * (float)i;
-//            var6 = AbstractDungeon.player.relics.iterator();
-//
-//            while(var6.hasNext()) {
-//                r = (AbstractRelic)var6.next();
-//                r.onPreviewObtainCard(c);
-//            }
-//        }
+    rarities[0] = rollCardRarityShop();
+    shop.cards[0] = getRandomCard(cardRng, CardType::ATTACK, rarities[0], characterClass);
+    shopAssignRandomCardExluding(*this, CardType::ATTACK, shop.cards[0].card, shop.cards[1].card, rarities[1]);
 
+    rarities[2] = rollCardRarityShop();
+    shop.cards[2] = getRandomCard(cardRng, CardType::SKILL, rarities[2], characterClass);
+    shopAssignRandomCardExluding(*this, CardType::SKILL, shop.cards[2].card, shop.cards[3].card, rarities[3]);
 
+    rarities[4] = rollCardRarityShop();
+    rarities[4] = rarities[4] == CardRarity::COMMON ? CardRarity::UNCOMMON : CardRarity::RARE;
+    shop.cards[4] = getRandomCard(cardRng, CardType::POWER, rarities[4], characterClass);
 
-//    getCard(cardRng, rollCardRarity(),
+    shop.cards[5] = getColorlessCardFromPool(cardRng, CardRarity::UNCOMMON);
+    shop.cards[6] = getColorlessCardFromPool(cardRng, CardRarity::RARE);
 
-//    AbstractCard c;
-//    for(c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.ATTACK, true).makeCopy(); c.color == CardColor.COLORLESS; c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.ATTACK, true).makeCopy()) {
-//    }
-//
-//    this.cards1.add(c);
-//
-//    for(c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.ATTACK, true).makeCopy(); Objects.equals(c.cardID, ((AbstractCard)this.cards1.get(this.cards1.size() - 1)).cardID) || c.color == CardColor.COLORLESS; c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.ATTACK, true).makeCopy()) {
-//    }
-//
-//    this.cards1.add(c);
-//
-//    for(c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.SKILL, true).makeCopy(); c.color == CardColor.COLORLESS; c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.SKILL, true).makeCopy()) {
-//    }
-//
-//    this.cards1.add(c);
-//
-//    for(c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.SKILL, true).makeCopy(); Objects.equals(c.cardID, ((AbstractCard)this.cards1.get(this.cards1.size() - 1)).cardID) || c.color == CardColor.COLORLESS; c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.SKILL, true).makeCopy()) {
-//    }
-//
-//    this.cards1.add(c);
-//
-//    for(c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.POWER, true).makeCopy(); c.color == CardColor.COLORLESS; c = AbstractDungeon.getCardFromPool(AbstractDungeon.rollRarity(), CardType.POWER, true).makeCopy()) {
-//    }
+    static const int rarityCosts[] {50,75,150};
+    for (int i = 0; i < 5; ++i) {
 
+        float tmpPrice = rarityCosts[(int)rarities[i]] * merchantRng.random(0.9f, 1.1f);
+        shop.cards[i].price = static_cast<int>(tmpPrice);
+    }
 
+    shop.cards[5].price = rarityCosts[(int)CardRarity::UNCOMMON] * merchantRng.random(0.9f, 1.1f) * 1.2f;
+    shop.cards[6].price = rarityCosts[(int)CardRarity::RARE] * merchantRng.random(0.9f, 1.1f) * 1.2f;
 
+    int saleIdx = merchantRng.random(4);
+    shop.cards[saleIdx].price /= 2;
 }
 
 
+void GameState::shopInitRelics(ShopScreen &shop) {
+    RelicTier tiers[2];
+
+    tiers[0] = rollRelicTier(relicRng);
+    shop.relics[0].relic = returnRandomRelic(tiers[0], Room::SHOP, false);
+    shop.relics[0].price = std::round(relicTierPrices[(int)tiers[0]] * merchantRng.random(0.95f, 1.05f));
+
+    tiers[1] = rollRelicTier(relicRng);
+    shop.relics[1].relic = returnRandomRelic(tiers[1], Room::SHOP, false);
+    shop.relics[1].price = std::round(relicTierPrices[(int)tiers[1]] * merchantRng.random(0.95f, 1.05f));
 
 
-//private void initCards() {
-//    int i;
-//    float tmpPrice;
-//    AbstractCard c;
-//    Iterator var6;
-//    AbstractRelic r;
-//    for(i = 0; i < this.coloredCards.size(); ++i) {
-//        tmpPrice = (float)AbstractCard.getPrice(((AbstractCard)this.coloredCards.get(i)).rarity) * AbstractDungeon.merchantRng.random(0.9F, 1.1F);
-//        c = (AbstractCard)this.coloredCards.get(i);
-//        c.price = (int)tmpPrice;
-//        c.current_x = (float)(Settings.WIDTH / 2);
-//        c.target_x = DRAW_START_X + AbstractCard.IMG_WIDTH_S / 2.0F + padX * (float)i;
-//        var6 = AbstractDungeon.player.relics.iterator();
-//
-//        while(var6.hasNext()) {
-//            r = (AbstractRelic)var6.next();
-//            r.onPreviewObtainCard(c);
-//        }
-//    }
-//
-//    for(i = 0; i < this.colorlessCards.size(); ++i) {
-//        tmpPrice = (float)AbstractCard.getPrice(((AbstractCard)this.colorlessCards.get(i)).rarity) * AbstractDungeon.merchantRng.random(0.9F, 1.1F);
-//        tmpPrice *= 1.2F;
-//        c = (AbstractCard)this.colorlessCards.get(i);
-//        c.price = (int)tmpPrice;
-//        c.current_x = (float)(Settings.WIDTH / 2);
-//        c.target_x = DRAW_START_X + AbstractCard.IMG_WIDTH_S / 2.0F + padX * (float)i;
-//        var6 = AbstractDungeon.player.relics.iterator();
-//
-//        while(var6.hasNext()) {
-//            r = (AbstractRelic)var6.next();
-//            r.onPreviewObtainCard(c);
-//        }
-//    }
-//
-//    AbstractCard saleCard = (AbstractCard)this.coloredCards.get(AbstractDungeon.merchantRng.random(0, 4));
-//    saleCard.price /= 2;
-//    this.saleTag = new OnSaleTag(saleCard);
-//    this.setStartingCardPositions();
-//}
+    shop.relics[2].relic = returnRandomRelic(RelicTier::SHOP, Room::SHOP, false);
+    shop.relics[2].price = std::round(relicTierPrices[(int)RelicTier::SHOP] * merchantRng.random(0.95f, 1.05f));
+}
 
 
+void GameState::shopInitPotions(ShopScreen &shop) {
+    for (int i = 0; i < 3; ++i) {
+        shop.potions[i].potion = returnRandomPotion(potionRng, characterClass);
+        const auto rarity = potionRarities[(int)shop.potions[i].potion];
+        const int basePrice = potionRarityPrices[(int)rarity];
+        shop.potions[i].price = std::round( basePrice * merchantRng.random(0.95f, 1.05f));
+    }
 
-
-
-
+}

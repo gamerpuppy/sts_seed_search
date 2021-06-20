@@ -8,126 +8,14 @@
 #include "sts_impl.h"
 #include "sts_map.h"
 
+#include "java_random.h"
+
 namespace sts {
 
     constexpr float SHRINE_CHANCE = 0.25F;
 
 
-    enum class Event {
-        INVALID=0,
-        MONSTER,
-        TREASURE,
-        SHOP,
-        ACCURSED_BLACKSMITH,
-        ADDICT,
-        BACK_TO_BASICS,
-        BEGGAR,
-        BIG_FISH,
-        BONFIRE_ELEMENTALS,
-        COLOSSEUM,
-        CURSED_TOME,
-        DEAD_ADVENTURER,
-        DESIGNER,
-        DRUG_DEALER,
-        DUPLICATOR,
-        FACE_TRADER,
-        FALLING,
-        FORGOTTEN_ALTAR,
-        FOUNTAIN_OF_CLEANSING,
-        GHOSTS,
-        GOLDEN_IDOL,
-        GOLDEN_SHRINE,
-        GOLDEN_WING,
-        KNOWING_SKULL,
-        LAB,
-        LIARS_GAME,
-        LIVING_WALL,
-        MASKED_BANDITS,
-        MATCH_AND_KEEP,
-        MINDBLOOM,
-        MUSHROOMS,
-        MYSTERIOUS_SPHERE,
-        NEST,
-        NLOTH,
-        NOTE_FOR_YOURSELF,
-        PURIFIER,
-        SCRAP_OOZE,
-        SECRET_PORTAL,
-        SENSORY_STONE,
-        SHINING_LIGHT,
-        THE_CLERIC,
-        THE_JOUST,
-        THE_LIBRARY,
-        THE_MAUSOLEUM,
-        THE_MOAI_HEAD,
-        THE_WOMAN_IN_BLUE,
-        TOMB_OF_LORD_RED_MASK,
-        TRANSMORGRIFIER,
-        UPGRADE_SHRINE,
-        VAMPIRES,
-        WE_MEET_AGAIN,
-        WHEEL_OF_CHANGE,
-        WINDING_HALLS,
-        WORLD_OF_GOOP,
-    };
 
-    static const char* eventStrings[] = {
-            "INVALID",
-            "MONSTER",
-            "TREASURE",
-            "SHOP",
-            "Accursed Blacksmith",
-            "Addict",
-            "Back to Basics",
-            "Beggar",
-            "Big Fish",
-            "Bonfire Elementals",
-            "Colosseum",
-            "Cursed Tome",
-            "Dead Adventurer",
-            "Designer",
-            "Drug Dealer",
-            "Duplicator",
-            "Face Trader",
-            "Falling",
-            "Forgotten Altar",
-            "Fountain of Cleansing",
-            "Ghosts",
-            "Golden Idol",
-            "Golden Shrine",
-            "Golden Wing",
-            "Knowing Skull",
-            "Lab",
-            "Liars Game",
-            "Living Wall",
-            "Masked Bandits",
-            "Match and Keep",
-            "Mindbloom",
-            "Mushrooms",
-            "Mysterious Sphere",
-            "Nest",
-            "Nloth",
-            "Note For Yourself",
-            "Purifier",
-            "Scrap Ooze",
-            "Secret Portal",
-            "Sensory Stone",
-            "Shining Light",
-            "The Cleric",
-            "The Joust",
-            "The Library",
-            "The Mausoleum",
-            "The Moai Head",
-            "The Woman in Blue",
-            "Tomb of Lord Red Mask",
-            "Transmorgrifier",
-            "Upgrade Shrine",
-            "Vampires",
-            "We Meet Again",
-            "Wheel of Change",
-            "Winding Halls",
-            "World of Goop",
-    };
 
     const std::array<Event,14> specialOneTimeEventsAsc0 { Event::ACCURSED_BLACKSMITH, Event::BONFIRE_ELEMENTALS, Event::DESIGNER, Event::DUPLICATOR, Event::FACE_TRADER, Event::FOUNTAIN_OF_CLEANSING, Event::KNOWING_SKULL, Event::LAB, Event::NLOTH, Event::NOTE_FOR_YOURSELF, Event::SECRET_PORTAL, Event::THE_JOUST, Event::WE_MEET_AGAIN, Event::THE_WOMAN_IN_BLUE };
     const std::array<Event,13> specialOneTimeEventsAsc15 { Event::ACCURSED_BLACKSMITH, Event::BONFIRE_ELEMENTALS, Event::DESIGNER, Event::DUPLICATOR, Event::FACE_TRADER, Event::FOUNTAIN_OF_CLEANSING, Event::KNOWING_SKULL, Event::LAB, Event::NLOTH, Event::SECRET_PORTAL, Event::THE_JOUST, Event::WE_MEET_AGAIN, Event::THE_WOMAN_IN_BLUE };
@@ -144,12 +32,12 @@ namespace sts {
 
 
     struct CardReward {
-        int choiceCount;
-        Card cards[4];
+        int cardCount;
+        std::array<Card,4> cards;
     };
 
     struct Rewards {
-        int goldCount = 0;
+        int goldRewardCount = 0;
         int gold[2];
 
         int cardRewardCount = 0;
@@ -166,7 +54,7 @@ namespace sts {
 
 
         void addGold(int goldAmt) {
-            gold[goldCount++] = goldAmt;
+            gold[goldRewardCount++] = goldAmt;
         }
 
         void addRelic(Relic relic) {
@@ -177,30 +65,36 @@ namespace sts {
             potions[potionCount++] = potion;
         }
 
+        std::string toString() const;
+
     };
 
     struct RelicShopItem {
         Relic relic;
         bool upgraded;
-        int cost;
+        int price;
     };
 
     struct CardShopItem {
         Card card;
-        bool upgraded;
-        int cost;
+        int price;
+
+        CardShopItem() = default;
+        CardShopItem(Card card) : card(card) {}
     };
 
     struct PotionShopItem {
         Potion potion;
-        int cost;
+        int price;
     };
 
     struct ShopScreen {
-        std::array<RelicShopItem,3> relics;
+        std::array<RelicShopItem, 3> relics;
         std::array<CardShopItem, 7> cards;
         std::array<PotionShopItem, 3> potions;
         int cardRemovalCost;
+
+        std::string toString(bool withPrices=false) const;
     };
 
     struct GameState {
@@ -224,8 +118,7 @@ namespace sts {
         Random relicRng = Random(0);
         Random potionRng = Random(0);
         Random cardRng = Random(0);
-
-        Room curRoom = Room::NONE;
+        Random merchantRng = Random(0);
 
         int floor = 0;
         int curPlayerHealth = 80;
@@ -259,16 +152,40 @@ namespace sts {
         bool skipReq_THE_JOUST =                false;
 
     private:
-        void initCards(ShopScreen &shop);
-
+        void shopInitCards(ShopScreen &shop);
+        void shopInitRelics(ShopScreen &shop);
+        void shopInitPotions(ShopScreen &shop);
 
 
     public:
         static GameState createGameState(std::int64_t seed, int ascension) {
             GameState ret;
             ret.seed = seed;
+
             ret.eventRng = Random(seed);
+            ret.treasureRng = Random(seed);
+            ret.eventRng = Random(seed);
+            ret.relicRng = Random(seed);
+            ret.potionRng = Random(seed);
+            ret.cardRng = Random(seed);
+            ret.merchantRng = Random(seed);
+
             ret.floor = 0;
+
+            ret.commonRelicPool.insert(ret.commonRelicPool.end(), Ironclad::commonRelicPool.begin(), Ironclad::commonRelicPool.end());
+            ret.uncommonRelicPool.insert(ret.uncommonRelicPool.end(), Ironclad::uncommonRelicPool.begin(), Ironclad::uncommonRelicPool.end());
+            ret.rareRelicPool.insert(ret.rareRelicPool.end(), Ironclad::rareRelicPool.begin(), Ironclad::rareRelicPool.end());
+            ret.shopRelicPool.insert(ret.shopRelicPool.end(), Ironclad::shopRelicPool.begin(), Ironclad::shopRelicPool.end());
+            ret.bossRelicPool.insert(ret.bossRelicPool.end(), Ironclad::bossRelicPool.begin(), Ironclad::bossRelicPool.end());
+
+
+            java::Collections::shuffle(ret.commonRelicPool.begin(), ret.commonRelicPool.end(), java::Random(ret.relicRng.nextLong()));
+            java::Collections::shuffle(ret.uncommonRelicPool.begin(), ret.uncommonRelicPool.end(), java::Random(ret.relicRng.nextLong()));
+            java::Collections::shuffle(ret.rareRelicPool.begin(), ret.rareRelicPool.end(), java::Random(ret.relicRng.nextLong()));
+            java::Collections::shuffle(ret.shopRelicPool.begin(), ret.shopRelicPool.end(), java::Random(ret.relicRng.nextLong()));
+            java::Collections::shuffle(ret.bossRelicPool.begin(), ret.bossRelicPool.end(), java::Random(ret.relicRng.nextLong()));
+
+
 
             ret.eventList.insert(ret.eventList.begin(), Act1::eventList.begin(), Act1::eventList.end());
             ret.shrineList.insert(ret.shrineList.begin(), Act1::shrineList.begin(), Act1::shrineList.end());
@@ -307,21 +224,24 @@ namespace sts {
 
 
         ShopScreen getShopScreen();
+        Rewards getCombatRewards(Room room, bool roomHasEmeraldKey=false);
 
         Event getEventRoomEvent();
-        Rewards getCombatRewards(GameState &s, Room room, bool roomHasEmeraldKey=false);
 
-        bool relicCanSpawn(Relic relic) const;
-        Relic returnRandomRelic(RelicTier tier, bool front=true);
-        Relic returnNonCampfireRelic(RelicTier tier);
+        bool relicCanSpawn(Relic relic, Room room) const;
+        Relic returnRandomRelic(RelicTier tier, Room room, bool front=true);
+        Relic returnNonCampfireRelic(RelicTier tier, Room room);
 
         void addPotionToRewards(Rewards &rewards);
+        CardReward getCardReward();
 
         CardRarity rollCardRarity();
-        std::array<Card,4> getRewardCards();
+        CardRarity rollCardRarityShop();
+
+
     };
 
-    RelicTier rollRandomRelicTier(Random &relicRng);
+    RelicTier rollRelicTier(Random &relicRng);
 
     Potion returnRandomPotion(Random &potionRng, CharacterClass c, bool limited=false);
     Potion returnRandomPotion(Random &potionRng, PotionRarity rarity, CharacterClass c, bool limited=false);
@@ -329,9 +249,12 @@ namespace sts {
     Potion getRandomPotion(Random &potionRng, CharacterClass c=CharacterClass::IRONCLAD);
     Potion getPotionFromPool(int idx, CharacterClass characterClass);
 
-    Card getRandomCard(Random &cardRng, CardRarity rarity, CardType type, CharacterClass c);
+    Card getRandomCard(Random &cardRng, CardType type, CardRarity rarity, CharacterClass c);
+
     Card getCard(Random &cardRng, CardRarity rarity, CharacterClass c);
     Card getAnyColorCard(Random &cardRng, CardRarity rarity);
+
+    Card getColorlessCardFromPool(Random &cardRng, CardRarity rarity);
 
 }
 

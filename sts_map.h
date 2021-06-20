@@ -64,19 +64,21 @@ namespace sts {
     };
 
     struct Map {
+        int burningEliteX = -1;
+        int burningEliteY = -1;
         std::array<std::array<MapNode, 7>, 15> nodes;
 
         MapNode &getNode(int x, int y);
         const MapNode &getNode(int x, int y) const;
 
         std::string toString(bool showRoomSymbols=true) const;
-        static Map fromSeed(std::int64_t seed, int ascension= 0, int act= 1);
+        static Map fromSeed(std::int64_t seed, int ascension= 0, int act= 1, bool assignBurningElite=false);
 
         void normalizeParents();
     };
 
     struct Path {
-        static constexpr std::int64_t roomContainBits[] {
+        static constexpr std::uint64_t roomContainBits[] {
           0x0111111111111111LL,
           0x0222222222222222LL,
           0x0333333333333333LL,
@@ -87,20 +89,23 @@ namespace sts {
           0x0888888888888888LL,
         };
 
-        static constexpr std::int64_t defaultBitsValue = 0x0888888888888888LL;
-        std::int64_t bits = defaultBitsValue;
+        static constexpr std::uint64_t defaultBitsValue = 0xF888888888888888LL;
+        std::uint64_t bits = defaultBitsValue;
 
         Path() : bits(defaultBitsValue) {};
-        explicit Path (std::int64_t bits) : bits(bits) {};
-        explicit Path(Room room) : bits(static_cast<int64_t>(room)+1) {};
+        explicit Path (std::uint64_t bits) : bits(bits) {};
+        explicit Path(Room room) : bits(static_cast<uint64_t>(room)+1) {};
         Path(const Path &rhs) = default;
 
-        static Path fromBits(std::int64_t);
+        static Path fromBits(std::uint64_t);
         static Path fromString(const std::string&);
+        static Path fromString(const std::string&, int idxOfBurningElite);
 
         bool operator<(const Path&) const;
         bool contains(Room room) const;
 
+        [[nodiscard]] int getIdxOfBurningElite() const;
+        [[nodiscard]] Path setIdxOfBurningElite(int idx) const;
         [[nodiscard]] Room roomAt(int y) const;
         [[nodiscard]] Path addRoom(Room room, int y) const;
         [[nodiscard]] std::string toString(int begin=0, int end=15) const;
@@ -112,6 +117,7 @@ namespace sts {
     typedef std::function<bool(Path path, Room nextRoom, int pathLength)> PathBuilderPredicate;
 
     void generateMap(Map &map, Random &mapRng);
+    void assignBurningElite(Map &map, Random &mapRng);
 
     void mapTest(std::int64_t seed);
 

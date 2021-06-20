@@ -67,7 +67,7 @@ void initNodes(Map &map) {
     }
 }
 
-Map Map::fromSeed(std::int64_t seed, int ascension, int act) {
+Map Map::fromSeed(std::int64_t seed, int ascension, int act, bool setBurning) {
     Map map;
     initNodes(map);
     auto offset = act == 1 ? 1 : act*(100*(act-1));
@@ -75,6 +75,9 @@ Map Map::fromSeed(std::int64_t seed, int ascension, int act) {
     createPaths(map, mapRng);
     filterRedundantEdgesFromFirstRow(map);
     assignRooms(map, mapRng, ascension);
+    if (setBurning) {
+        assignBurningElite(map, mapRng);
+    }
     return map;
 }
 
@@ -96,7 +99,7 @@ void Map::normalizeParents() {
     }
 }
 
-Path Path::fromBits(std::int64_t bits) {
+Path Path::fromBits(std::uint64_t bits) {
     std::int64_t newBits = 0;
     for (int y = 0; y < 15; ++y) {
         auto bitsAtY = bits >> ((14-y)*4) & 0xF;
@@ -125,6 +128,9 @@ Path Path::fromString(const std::string &str) {
     return path;
 }
 
+Path Path::fromString(const std::string &s, int idxOfBurningElite) {
+    return Path::fromString(s).setIdxOfBurningElite(idxOfBurningElite);
+}
 
 bool Path::operator<(const Path &rhs) const {
     return bits < rhs.bits;
@@ -132,6 +138,15 @@ bool Path::operator<(const Path &rhs) const {
 
 bool Path::contains(Room room) const {
     return bits & roomContainBits[(int)room];
+}
+
+Path Path::setIdxOfBurningElite(int idx) const {
+    auto newBits = (bits & 0x0FFFFFFFFFFFFFFFFULL) | (static_cast<std::uint64_t>(idx)  << 60);
+    return Path(newBits);
+}
+
+int Path::getIdxOfBurningElite() const {
+    return static_cast<int>(bits >> 60);
 }
 
 Room Path::roomAt(int y) const {
@@ -852,6 +867,32 @@ void sts::generateMap(Map &map, sts::Random &mapRng) {
     createPaths(map, mapRng);
     filterRedundantEdgesFromFirstRow(map);
     assignRooms(map, mapRng);
+}
+
+struct IntTuple {
+    int x;
+    int y;
+
+    IntTuple() = default;
+    IntTuple(int x, int y) : x(x), y(y) {}
+};
+
+void sts::assignBurningElite(Map &map, Random &mapRng) {
+    int eliteRoomCount = 0;
+    std::array<IntTuple,14> eliteRooms;
+
+    for (int row = 0; row < 15; ++row) {
+        for (int col = 0; col < 7; ++col) {
+            if (map.getNode(row,col).room == sts::Room::ELITE) {
+                eliteRooms[eliteRoomCount++] = IntTuple(col,row);
+            }
+        }
+    }
+
+    // if number of elite rooms is 1 it will crash the base game too.
+    int idx = mapRng.random(eliteRoomCount-1);
+    map.burningEliteX = eliteRooms.at(idx).x;
+    map.burningEliteY = eliteRooms.at(idx).y;
 }
 
 

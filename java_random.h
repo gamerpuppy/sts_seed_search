@@ -13,18 +13,18 @@ private:
 //    std::int64_t serialVersionUID = 3905348978240129619LL;
 
     // atomic long
-    std::int64_t seed;
-    static constexpr std::int64_t multiplier = 0x5DEECE66DLL;
-    static constexpr std::int64_t addend = 0xBLL;
-    static constexpr std::int64_t mask = (1LL << 48) - 1;
+    std::uint64_t seed;
+    static constexpr std::uint64_t multiplier = 0x5DEECE66DULL;
+    static constexpr std::uint64_t addend = 0xBULL;
+    static constexpr std::uint64_t mask = (1ULL << 48) - 1;
     static constexpr double DOUBLE_UNIT = 0x1.0p-53; // 1.0 / (1L << 53)
 
-    static std::int64_t initialScramble(std::int64_t seed) {
+    static std::uint64_t initialScramble(std::uint64_t seed) {
         return (seed ^ multiplier) & mask;
     }
 
 public:
-    Random(std::int64_t seed) : seed(initialScramble(seed)) {}
+    Random(std::uint64_t seed) : seed(initialScramble(seed)) {}
 
     std::int32_t next(std::int32_t bits) {
         seed = (seed * multiplier + addend) & mask;
@@ -39,7 +39,7 @@ public:
         int r = next(31);
         int m = bound - 1;
         if ((bound & m) == 0)  // i.e., bound is a power of 2
-            r = static_cast<int32_t>( ((bound * static_cast<std::int64_t>(r)) >> 31) );
+            r = static_cast<int32_t>( ((bound * static_cast<std::uint64_t>(r)) >> 31) );
         else {
             for (int32_t u = r;
                  u - (r = u % bound) + m < 0;

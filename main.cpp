@@ -431,6 +431,7 @@ bool testSeedForMinCombats(const std::int64_t seed) {
 
 
 #include <cstring>
+#include <cassert>
 
 bool cardLessThanById(Card a, Card b) {
     int ia = (int)a;
@@ -485,9 +486,7 @@ void asdf2() {
         std::cout << cardIds[(int)card] << '\n';
     }
 
-
     std::vector<Card> outCards;
-
     for (int colorIdx = 0; colorIdx < 4; ++colorIdx) {
         CardColor color = (CardColor)colorIdx;
         for (int typeIdx = 0; typeIdx < 3; ++typeIdx) {
@@ -499,18 +498,18 @@ void asdf2() {
         }
     }
 
+    std::cout << "{";
+    for (auto c : outCards) {
+        assert((int)c <= 370 && (int)c >= 0);
+        std::cout << "Card::"<< cardEnumNames[(int)c] << ',';
+    }
+    std::cout << "};\n";
+
+
 
 }
 
-
-
-
-
-int main(int argc, const char ** argv) {
-
-//    std::cout << sizeof(cardIds) / sizeof (const char*) << '\n';
-
-
+void generateCardBlob() {
     asdf2();
 
     std::cout << "{";
@@ -521,9 +520,9 @@ int main(int argc, const char ** argv) {
             for (int r = 0; r < 3; ++r) {
                 std::cout << startIndices[c][t][r] << ",";
             }
-            std::cout << "}";
+            std::cout << "},";
         }
-        std::cout << "}";
+        std::cout << "},";
     }
     std::cout << "}";
 
@@ -538,213 +537,75 @@ int main(int argc, const char ** argv) {
             for (int r = 0; r < 3; ++r) {
                 std::cout << groupSize[c][t][r] << ",";
             }
-            std::cout << "}";
+            std::cout << "},";
         }
-        std::cout << "}";
+        std::cout << "},";
     }
     std::cout << "}";
+}
 
-//    std::int64_t seed = SeedHelper::getLong("69WKC6PKQJ95");
-//    Map map = Map::fromSeed(seed, 0, 2);
-//    std::cout << seed  << std::endl;
-//    std::cout << map.toString() << std::endl;
-//
-//    auto candidatePaths2 = getPathsMatching(map, [](auto path, auto nextRoom, auto pathLength) {
-//        return pathLength == 0 || (nextRoom != Room::MONSTER && nextRoom != Room::ELITE);
-//    });
+void asdfColorless() {
+    std::vector<Card> allSorted;
+    for (int i = 1; i < 371; ++i) {
+        Card c = static_cast<Card>(i);
 
-//    auto seedLong = SeedHelper::getLong("2TJUGXNV8D");
-//
-//    auto act1Seed = seedLong;
-//    auto act2Seed = seedLong-199;
-//    auto act3Seed = seedLong-599;
-//
-//    std::cout << Map::fromSeed(act1Seed, 0 , 1).toString() << '\n';
-//    std::cout << Map::fromSeed(act2Seed, 0 , 2).toString() << '\n';
-//    std::cout << Map::fromSeed(act3Seed, 0 , 3).toString() << '\n';
-//
-//    std::cout << SeedHelper::getString(act2Seed) << '\n';
-//    std::cout << SeedHelper::getString(act3Seed) << '\n';
+        bool matches = cardColors[(int)c] == sts::CardColor::COLORLESS &&
+                cardRarities[(int)c] != sts::CardRarity::BASIC &&
+                cardRarities[(int)c] != sts::CardRarity::SPECIAL &&
+                cardTypes[(int)c] != sts::CardType::STATUS;
+
+        if (matches) {
+            allSorted.push_back(c);
+        }
+    }
+
+    std::sort(allSorted.begin(), allSorted.end(), cardLessThanById);
 
 
-//    std::cout << SeedHelper::getString(seedLong-1-offset);
+    std::array<std::vector<Card>,3> vecs = {};
 
+    for (int rarity = 0; rarity < 3; ++rarity) {
+        for (auto x : allSorted) {
+            if (cardRarities[(int)x] == (CardRarity)rarity) {
+                vecs[rarity].push_back(x);
+            }
+        }
+    }
 
+    std::cout << "{ ";
+    for (int i = 0; i < 3; ++i) {
+        for (auto x : vecs[i]) {
+            std::cout << "Card::" << cardEnumNames[(int)x] << ',';
+        }
+    }
+    std::cout << " };";
+    std::cout << vecs[0].size() << '\n';
+    std::cout << vecs[1].size() << '\n';
+    std::cout << vecs[2].size() << '\n';
 
-//    readSinglePathSeeds();
-//    testSeeds(8225124566,1e9, testSeedForMinCombats);
-
-
-
-
-//    std::default_random_engine generator;
-//    std::uniform_int_distribution<std::int64_t> distribution(0,LONG_LONG_MAX);
-//    std::int64_t randomStart = distribution(generator);
-////    testSeedsMt(randomStart, 8e9, 16, testSeedForMinCombats, true, true);
-////    testSeedsMt(randomStart, 1e10, 16, testSeedForFruitJuiceNeows, true, true);
-//    testSeedsMt(randomStart, 1e6, 16, testSeedForCardReward, false, true);
-
-
-
-//    testSeeds(12512566,1e5, testSeedForNeowBossEvent);
-
-//    std::int64_t seed = SeedHelper::getLong("8C3DE");
-//    testSeedForNeowBossEvent(seed);
-//
-//
-//    GameState gameState = GameState::createGameState(seed, 0);
-//    gameState.curRoom = Room::MONSTER;
-//
-//    Path path = Path::fromString("M????R?RT$R$??R");
-//
-//    for (int y = 0; y < 15; y++) {
-//        gameState.floor = y+1;
-//        Room room = path.roomAt(y);
-//        if (room == Room::NONE) {
-//            break;
-//        }
-//
-//        if (room == sts::Room::EVENT) {
-//            auto res = getEventRoomEvent(gameState);
-//
-//            if (res == Event::MONSTER) {
-//                gameState.curRoom = Room::MONSTER;
-//            } else if (res == Event::SHOP) {
-//                gameState.curRoom = Room::SHOP;
-//            } else {
-//                gameState.curRoom = Room::EVENT;
-//            }
-//
-//        } else {
-//            gameState.curRoom = room;
-//        }
-//    }
-//
-//    gameState.floor += 2;
-//    gameState.act = 2;
-//    gameState.curRoom = sts::Room::BOSS;
-//
-//    gameState.eventList.clear();
-//    gameState.eventList.insert(gameState.eventList.begin(), Act2::eventList.begin(), Act2::eventList.end());
-//
-//    gameState.shrineList.clear();
-//    gameState.shrineList.insert(gameState.shrineList.begin(), Act2::shrineList.begin(), Act2::shrineList.end());
-//
-//    gameState.resetEventHelperProbabilities();
-//
-//    path = Path::fromString("M??");
-//
-//    for (int y = 0; y < 15; y++) {
-//        ++gameState.floor;
-//        Room room = path.roomAt(y);
-//        if (room == Room::NONE) {
-//            break;
-//        }
-//
-//        if (room == sts::Room::EVENT) {
-//            auto res = getEventRoomEvent(gameState);
-//            std::cout << eventStrings[(int)res] << std::endl;
-//
-//            if (res == Event::MONSTER) {
-//                gameState.curRoom = Room::MONSTER;
-//            } else if (res == Event::SHOP) {
-//                gameState.curRoom = Room::SHOP;
-//            } else {
-//                gameState.curRoom = Room::EVENT;
-//            }
-//
-//        } else {
-//            std::cout << roomStrings[(int)room] << std::endl;
-//            gameState.curRoom = room;
-//        }
-//
-//
-//    }
-//
-//    std::cout << Random(seed+20).randomBoolean(0.3) << std::endl;
-
-
-//    testSeedsForUniquePaths(724535456146, 1e7);
-
-//    Map map = Map::fromSeed(SeedHelper::getLong("8BXNY"));
-//    std::cout << map.toString(true) << std::endl;
-//
-//    auto uniques = sts::getUniquePaths(map);
-//    std::cout << uniques.size() << std::endl;
-//
-//    std::cout << std::hex << std::uppercase;
-//    for (auto p : uniques) {
-////        std::cout <<  p.bits << std::endl;
-//        std::cout << p.toString() << std::endl;
-//    }
-
-//    runMapBenchmark();
-
-
-//    sts::printStats();
-//    sts::mapTest(46006654027332);
-
-//    std::cout << sts::SeedHelper::getString(5000000+1527);
-
-//    sts::findSinglePathSeeds(223125166216516LL, (std::int64_t)1e9, 4);
-
-//    findSinglePathSeeds();
-
-
-
-//    for (int i = 0; i < 285; i++) {
-//        std::cout << sts::cardNames[i] << " " << sts::normalCardNames[i] << '\n';
-//    }
-//    readAndDescribeSeeds("seeds.txt");
-//
-//    std::vector<std::int64_t> seeds = {sts::SeedHelper::getLong("FGZ8HEJLPY")};
-//    sts::describeSeeds(seeds);
-
-//    runCandidateFilter();
-    return 0;
 }
 
 
+int main(int argc, const char ** argv) {
 
+    std::string seedStr = "1234567";
+    std::int64_t seed = SeedHelper::getLong(seedStr);
+    Map map = Map::fromSeed(seed, 0, 1);
+    std::cout << seedStr  << '\n';
+    std::cout << map.toString() << '\n';
 
+    GameState gs = GameState::createGameState(seed, 0);
 
+    gs.floor = 1;
+    auto r = gs.getCombatRewards(sts::Room::MONSTER, false);
+    std::cout << r.toString() << '\n';
 
-//    testSeedsForBossNeows();
+    gs.floor = 2;
+    r = gs.getCombatRewards(sts::Room::MONSTER, false);
+    std::cout << r.toString() << '\n';
 
-//    auto seeds = parseSeeds("single-paths");
-//
-//    std::vector<SeedResult> results;
-//    for (auto seed : seeds) {
-//        auto map = sts::Map::fromSeed(seed, 20, 1);
-////
-////        int singleLength = sts::getPathSingleLength(seed);
-////        int singleLengthTotal = sts::getPathTotalSingleLength(seed);
-//
-////        int attribute = sts::getMinMapWeight(map, [](auto node){ return node.room == sts::Room::ELITE ? 1 : 0; });
-//
-////        int attribute = sts::getMinMapWeight(map, [](auto node){ return node.room == sts::Room::MONSTER; });
-//        int attribute = sts::getMinMapWeight(map,
-//                                                          [](auto node){ return node.room == sts::Room::MONSTER
-//                                                                                || node.room == sts::Room::ELITE; });
-//
-////        int attribute = sts::getMaxMapWeight(map, [](auto node) { return node.room == sts::Room::ELITE; });
-//
-////        bool isForcedElite = sts::isForcedMonsterIntoEliteFight(seed);
-//
-//
-//        results.emplace_back(seed, attribute);
-//    }
-//
-//    std::sort(results.begin(), results.end(), compareSeedResults);
-//
-//    for (auto res : results) {
-//        std::cout << res.attribute << " " << sts::SeedHelper::getString(res.seed) << '\n';
-//    }
-//
-//
-//    auto res = *results.begin();
-//    Map map = Map::fromSeed(res.seed);
-//    std::cout << map.toString(true) << std::endl;
-//    std::cout << SeedHelper::getString(res.seed) << " score: " << res.attribute << '\n';
-//
+    auto ss = gs.getShopScreen();
+    std::cout << ss.toString(true) << '\n';
 
+    return 0;
+}

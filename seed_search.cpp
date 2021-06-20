@@ -378,7 +378,6 @@ std::vector<std::int64_t> sts::findSinglePathSeedsMt(std::int64_t start, std::in
 
 bool sts::validateNeowBossPath(std::int64_t seed, const Path& p) {
     GameState gameState = GameState::createGameState(seed, 0);
-    gameState.curRoom = Room::MONSTER;
 
 //    std::cout << p.toString() << std::endl;
 
@@ -390,16 +389,14 @@ bool sts::validateNeowBossPath(std::int64_t seed, const Path& p) {
             auto res = gameState.getEventRoomEvent();
 
             if (res == Event::MONSTER) {
-                gameState.curRoom = Room::MONSTER;
                 return false;
             } else if (res == Event::SHOP) {
-                gameState.curRoom = Room::SHOP;
+
             } else {
-                gameState.curRoom = Room::EVENT;
+
             }
 
         } else {
-            gameState.curRoom = room;
 
         }
     }
@@ -464,14 +461,14 @@ bool sts::testSeedForCardReward(std::int64_t seed) {
     GameState gameState = GameState::createGameState(seed, 0);
     gameState.cardRng = Random(seed);
     gameState.characterClass = CharacterClass::WATCHER;
-    auto arr = gameState.getRewardCards();
+    auto reward = gameState.getCardReward();
 
     bool containFlex = false;
     bool containLimitBreak = false;
     for (int i  = 0; i < 3; ++i) {
-        if (arr[i] == Card::WALLOP) {
+        if (reward.cards[i] == Card::WALLOP) {
             containFlex = true;
-        } else if (arr[i] == Card::TALK_TO_THE_HAND) {
+        } else if (reward.cards[i] == Card::TALK_TO_THE_HAND) {
             containLimitBreak = true;
         }
     }

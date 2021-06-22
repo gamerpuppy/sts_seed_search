@@ -12,6 +12,10 @@
 
 namespace sts {
 
+
+
+
+
     constexpr float SHRINE_CHANCE = 0.25F;
 
 
@@ -49,8 +53,8 @@ namespace sts {
         int potionCount = 0;
         Potion potions[3];
 
-        bool emeraldKey;
-        bool sapphireKey;
+        bool emeraldKey = false;
+        bool sapphireKey = false;
 
 
         void addGold(int goldAmt) {
@@ -119,6 +123,17 @@ namespace sts {
         Random potionRng = Random(0);
         Random cardRng = Random(0);
         Random merchantRng = Random(0);
+        Random monsterRng = Random(0);
+
+
+        int monsterListOffset = 0;
+        int monsterListSize = 0;
+        std::array<MonsterEncounter, 15> monsterList;
+
+        int eliteMonsterListSize = 0;
+        std::array<MonsterEncounter, 3> eliteMonsterList;
+
+        MonsterEncounter boss;
 
         int floor = 0;
         int curPlayerHealth = 80;
@@ -155,6 +170,7 @@ namespace sts {
         void shopInitCards(ShopScreen &shop);
         void shopInitRelics(ShopScreen &shop);
         void shopInitPotions(ShopScreen &shop);
+        RelicTier rollRelicTierShop();
 
 
     public:
@@ -169,6 +185,7 @@ namespace sts {
             ret.potionRng = Random(seed);
             ret.cardRng = Random(seed);
             ret.merchantRng = Random(seed);
+            ret.monsterRng = Random(seed);
 
             ret.floor = 0;
 
@@ -239,6 +256,12 @@ namespace sts {
         CardRarity rollCardRarityShop();
 
 
+        void initEnemies();
+        void generateWeakEnemies(int count);
+        void generateStrongEnemies(int count);
+        void generateElites();
+
+        void populateMonsterList(const MonsterEncounter monsters[], const float weights[], int monstersSize, int numMonsters);
     };
 
     RelicTier rollRelicTier(Random &relicRng);
@@ -255,6 +278,9 @@ namespace sts {
     Card getAnyColorCard(Random &cardRng, CardRarity rarity);
 
     Card getColorlessCardFromPool(Random &cardRng, CardRarity rarity);
+
+    MonsterEncounter getBoss(Random &monsterRng, int act);
+
 
 }
 

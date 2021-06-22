@@ -118,7 +118,7 @@ namespace sts {
 
     bool testSeedForFruitJuiceNeows(std::int64_t);
 
-    std::vector<std::int64_t> testSeedsMt(std::int64_t start, std::int64_t count, int threadCount, const SeedPredicate& predicate, bool printWhenFound=false, bool logStats=false);
+    std::vector<std::int64_t> testSeedsMt(std::int64_t start, std::int64_t count, int threadCount, const SeedPredicate& predicate, bool printWhenFound= false, bool logStats= false);
 
 
 }

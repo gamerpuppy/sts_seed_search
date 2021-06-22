@@ -64,7 +64,7 @@ std::vector<sts::candidate> parseCandidates(std::string fName) {
 
 
 void runCandidateFilter() {
-    auto cs = parseCandidates("candidates-10.txt");
+    auto cs = parseCandidates("single-paths-new");
     auto res = sts::runSearch2(cs);
 
     std::sort(res.begin(), res.end());
@@ -179,15 +179,6 @@ bool compareSeedResults(const SeedResult &a, const SeedResult &b) {
     }
     return a.attribute > b.attribute;
 }
-
-
-
-
-void testSeedsForBossNeows() {
-    sts::testSeedForNeowBossEvent(SeedHelper::getLong("54576PMR8ICQY"));
-
-}
-
 
 struct SeedResultStats {
     SeedResult min;
@@ -593,19 +584,36 @@ int main(int argc, const char ** argv) {
     Map map = Map::fromSeed(seed, 0, 1);
     std::cout << seedStr  << '\n';
     std::cout << map.toString() << '\n';
-
     GameState gs = GameState::createGameState(seed, 0);
 
-    gs.floor = 1;
-    auto r = gs.getCombatRewards(sts::Room::MONSTER, false);
-    std::cout << r.toString() << '\n';
+    gs.initEnemies();
 
-    gs.floor = 2;
-    r = gs.getCombatRewards(sts::Room::MONSTER, false);
-    std::cout << r.toString() << '\n';
 
-    auto ss = gs.getShopScreen();
-    std::cout << ss.toString(true) << '\n';
+
+//
+//    gs.floor = 1;
+//    auto r = gs.getCombatRewards(sts::Room::MONSTER, false);
+//    std::cout << r.toString() << '\n';
+//
+//    gs.floor = 2;
+//    r = gs.getCombatRewards(sts::Room::MONSTER, false);
+//    std::cout << r.toString() << '\n';
+//
+//    gs.floor = 3;
+//    auto ss = gs.getShopScreen();
+//    std::cout << ss.toString(true) << '\n';
+//
+//    gs.floor = 4;
+//    r = gs.getCombatRewards(sts::Room::MONSTER, false);
+//    std::cout << r.toString() << '\n';
+//
+//    gs.floor = 5;
+//    r = gs.getCombatRewards(sts::Room::MONSTER, false);
+//    std::cout << r.toString() << '\n';
+
+
+//    describeSeeds({SeedHelper::getLong("DCBWYBYGSM")});
+//    runCandidateFilter();
 
     return 0;
 }

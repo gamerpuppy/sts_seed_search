@@ -897,11 +897,11 @@ void GameState::shopInitCards(ShopScreen &shop) {
 void GameState::shopInitRelics(ShopScreen &shop) {
     RelicTier tiers[2];
 
-    tiers[0] = rollRelicTier(relicRng);
+    tiers[0] = rollRelicTierShop();
     shop.relics[0].relic = returnRandomRelic(tiers[0], Room::SHOP, false);
     shop.relics[0].price = std::round(relicTierPrices[(int)tiers[0]] * merchantRng.random(0.95f, 1.05f));
 
-    tiers[1] = rollRelicTier(relicRng);
+    tiers[1] = rollRelicTierShop();
     shop.relics[1].relic = returnRandomRelic(tiers[1], Room::SHOP, false);
     shop.relics[1].price = std::round(relicTierPrices[(int)tiers[1]] * merchantRng.random(0.95f, 1.05f));
 
@@ -909,6 +909,7 @@ void GameState::shopInitRelics(ShopScreen &shop) {
     shop.relics[2].relic = returnRandomRelic(RelicTier::SHOP, Room::SHOP, false);
     shop.relics[2].price = std::round(relicTierPrices[(int)RelicTier::SHOP] * merchantRng.random(0.95f, 1.05f));
 }
+
 
 
 void GameState::shopInitPotions(ShopScreen &shop) {
@@ -920,3 +921,152 @@ void GameState::shopInitPotions(ShopScreen &shop) {
     }
 
 }
+
+RelicTier GameState::rollRelicTierShop() {
+    int roll = merchantRng.random(99);
+    if (roll < 48) {
+        return RelicTier::COMMON;
+    } else if (roll < 82) {
+        return RelicTier::UNCOMMON;
+    } else {
+        return RelicTier::RARE;
+    }
+}
+
+
+void GameState::initEnemies() {
+    generateWeakEnemies(act == 1 ? 3 : 2);
+    generateStrongEnemies(12);
+    generateElites();
+    boss = getBoss(monsterRng, act);
+}
+
+
+
+
+int rollWeightedIdx(float roll, const float *weights, int weightSize) {
+    // the base game method can return "ERROR"
+    float curWeight = 0.0f;
+    for (int i = 0; i < weightSize; ++i) {
+        curWeight += weights[i];
+        if (roll < curWeight) {
+            return i;
+        }
+    }
+    return weightSize - 1;
+}
+
+
+void GameState::populateMonsterList(const MonsterEncounter monsters[], const float weights[], int monstersSize, int numMonsters) {
+    for(int i = 0; i < numMonsters; ++i) {
+        if (monsterListSize == 0) {
+            int idx = rollWeightedIdx(monsterRng.random(), weights, monstersSize);
+            monsterList[monsterListSize++] = monsters[idx];
+
+        } else {
+            int idx = rollWeightedIdx(monsterRng.random(), weights, monstersSize);
+            MonsterEncounter toAdd = monsters[idx];
+
+            if (toAdd == (monsterList[monstersSize-1]) ) {
+                --i;
+
+            } else {
+
+                if (monsterListSize > 1 && toAdd == monsterList[monsterListSize-2]) {
+                    --i;
+                } else {
+                    monsterList[monstersSize++] = toAdd;
+                }
+
+            }
+        }
+    }
+}
+
+void GameState::generateWeakEnemies(int count) {
+    static const MonsterEncounter weakEnemies[3][5] = {
+            { MonsterEncounter::CULTIST, MonsterEncounter::JAW_WORM, MonsterEncounter::TWO_LOUSE, MonsterEncounter::SMALL_SLIMES },
+            { MonsterEncounter::SPHERIC_GUARDIAN, MonsterEncounter::CHOSEN, MonsterEncounter::SHELL_PARASITE, MonsterEncounter::THREE_BYRDS, MonsterEncounter::TWO_THIEVES },
+            { MonsterEncounter::THREE_DARKLINGS, MonsterEncounter::ORB_WALKER, MonsterEncounter::THREE_SHAPES },
+    };
+    static const float weights[3][5] = {
+            { 1.0f/4, 1.0f/4, 1.0f/4, 1.0f/4 },
+            { 1.0f/5, 1.0f/5, 1.0f/5, 1.0f/5, 1.0f/5 },
+            { 1.0f/3, 1.0f/3, 1.0f/3 }
+    };
+    static const int weakCount[3] {4,5,3};
+
+    populateMonsterList(weakEnemies[act], weights[act], weakCount[act], act == 1 ? 3 : 2);
+}
+
+void GameState::generateStrongEnemies(int count) {
+
+}
+
+int rollElite(Random &monsterRng) {
+    float roll = monsterRng.random();
+
+    float currentWeight = 0.0f;
+    currentWeight += 1.0f/3;
+    if (roll >= currentWeight) {
+        return 0;
+    }
+
+    currentWeight += 1.0f/3;
+    if (roll >= currentWeight) {
+        return 1;
+    } else {
+        return 2;
+    }
+}
+
+void GameState::generateElites() {
+    static const MonsterEncounter elites[3][3] = {
+            { MonsterEncounter::GREMLIN_NOB, MonsterEncounter::LAGAVULIN, MonsterEncounter::THREE_SENTRIES },
+            { MonsterEncounter::GREMLIN_LEADER, MonsterEncounter::SLAVERS, MonsterEncounter::BOOK_OF_STABBING },
+            { MonsterEncounter::GIANT_HEAD, MonsterEncounter::NEMESIS, MonsterEncounter::REPTOMANCER },
+    };
+
+    for(int i = 0; i < 10; ++i) {
+        if (eliteMonsterListSize == 0) {
+            eliteMonsterList[eliteMonsterListSize++] = elites[act][rollElite(monsterRng)];
+        } else {
+            auto toAdd = elites[act][rollElite(monsterRng)];
+            if (toAdd != eliteMonsterList[eliteMonsterListSize-1]) {
+                eliteMonsterList[eliteMonsterListSize++] = toAdd;
+            } else {
+                --i;
+            }
+        }
+    }
+}
+
+
+MonsterEncounter sts::getBoss(Random &monsterRng, int act) {
+    static const MonsterEncounter bosses[3][3] = {
+            { MonsterEncounter::THE_GUARDIAN, MonsterEncounter::HEXAGHOST, MonsterEncounter::SLIME_BOSS },
+            { MonsterEncounter::AUTOMATON, MonsterEncounter::COLLECTOR, MonsterEncounter::CHAMP },
+            { MonsterEncounter::AWAKENED_ONE, MonsterEncounter::TIME_EATER, MonsterEncounter::DONU_AND_DECA },
+    };
+
+    java::Collections::shuffle(bosses[act], bosses[act]+3, java::Random(monsterRng.randomLong()));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

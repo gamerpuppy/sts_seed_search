@@ -128,10 +128,10 @@ namespace sts {
 
         int monsterListOffset = 0;
         int monsterListSize = 0;
-        std::array<MonsterEncounter, 15> monsterList;
+        std::array<MonsterEncounter, 16> monsterList;
 
         int eliteMonsterListSize = 0;
-        std::array<MonsterEncounter, 3> eliteMonsterList;
+        std::array<MonsterEncounter, 10> eliteMonsterList;
 
         MonsterEncounter boss;
 
@@ -257,11 +257,13 @@ namespace sts {
 
 
         void initEnemies();
-        void generateWeakEnemies(int count);
-        void generateStrongEnemies(int count);
+        void generateWeakEnemies();
+        void generateStrongEnemies();
         void generateElites();
 
         void populateMonsterList(const MonsterEncounter monsters[], const float weights[], int monstersSize, int numMonsters);
+
+        void populateFirstStrongEnemy(const MonsterEncounter monsters[], const float weights[], int monstersSize);
     };
 
     RelicTier rollRelicTier(Random &relicRng);

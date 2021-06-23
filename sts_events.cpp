@@ -935,8 +935,8 @@ RelicTier GameState::rollRelicTierShop() {
 
 
 void GameState::initEnemies() {
-    generateWeakEnemies(act == 1 ? 3 : 2);
-    generateStrongEnemies(12);
+    generateWeakEnemies();
+    generateStrongEnemies();
     generateElites();
     boss = getBoss(monsterRng, act);
 }
@@ -967,53 +967,131 @@ void GameState::populateMonsterList(const MonsterEncounter monsters[], const flo
             int idx = rollWeightedIdx(monsterRng.random(), weights, monstersSize);
             MonsterEncounter toAdd = monsters[idx];
 
-            if (toAdd == (monsterList[monstersSize-1]) ) {
-                --i;
+            if (toAdd != monsterList[monsterListSize-1] &&
+                    (monsterListSize < 2 || toAdd != monsterList[monsterListSize-2]) )
+            {
+                monsterList[monsterListSize++] = toAdd;
 
             } else {
-
-                if (monsterListSize > 1 && toAdd == monsterList[monsterListSize-2]) {
-                    --i;
-                } else {
-                    monsterList[monstersSize++] = toAdd;
-                }
-
+                --i;
             }
         }
     }
 }
 
-void GameState::generateWeakEnemies(int count) {
-    static const MonsterEncounter weakEnemies[3][5] = {
-            { MonsterEncounter::CULTIST, MonsterEncounter::JAW_WORM, MonsterEncounter::TWO_LOUSE, MonsterEncounter::SMALL_SLIMES },
-            { MonsterEncounter::SPHERIC_GUARDIAN, MonsterEncounter::CHOSEN, MonsterEncounter::SHELL_PARASITE, MonsterEncounter::THREE_BYRDS, MonsterEncounter::TWO_THIEVES },
-            { MonsterEncounter::THREE_DARKLINGS, MonsterEncounter::ORB_WALKER, MonsterEncounter::THREE_SHAPES },
+void GameState::populateFirstStrongEnemy(const MonsterEncounter monsters[], const float weights[], int monstersSize) {
+    auto lastMonster = monsterList[monsterListSize-1];
+    while (true) {
+        int idx = rollWeightedIdx(monsterRng.random(), weights, monstersSize);
+        auto toAdd = monsters[idx];
+
+        switch (toAdd) {
+
+            case MonsterEncounter::LARGE_SLIME:
+            case MonsterEncounter::LOTS_OF_SLIMES:
+                if (lastMonster == MonsterEncounter::SMALL_SLIMES) {
+                    continue;
+                }
+                break;
+
+            case MonsterEncounter::THREE_LOUSE:
+                if (lastMonster == MonsterEncounter::TWO_LOUSE) {
+                    continue;
+                }
+                break;
+
+
+            case MonsterEncounter::CHOSEN_AND_BYRDS:
+                break;
+            case MonsterEncounter::SENTRY_AND_SPHERE:
+                break;
+            case MonsterEncounter::SNAKE_PLANT:
+                break;
+            case MonsterEncounter::SNECKO:
+                break;
+            case MonsterEncounter::CENTURION_AND_HEALER:
+                break;
+            case MonsterEncounter::CULTIST_AND_CHOSEN:
+                break;
+            case MonsterEncounter::THREE_CULTIST:
+                break;
+            case MonsterEncounter::SHELLED_PARASITE_AND_FUNGI:
+                break;
+
+
+            case MonsterEncounter::SPIRE_GROWTH:
+                break;
+            case MonsterEncounter::TRANSIENT:
+                break;
+            case MonsterEncounter::FOUR_SHAPES:
+                break;
+            case MonsterEncounter::MAW:
+                break;
+            case MonsterEncounter::SPHERE_AND_TWO_SHAPES:
+                break;
+            case MonsterEncounter::JAW_WORM_HORDE:
+                break;
+            case MonsterEncounter::WRITHING_MASS:
+                break;
+
+            default: // should not happen
+                break;
+        }
+
+        monsterList[monsterListSize++] = toAdd;
+        return;
+    }
+}
+
+
+
+
+
+void GameState::generateWeakEnemies() {
+    constexpr MonsterEncounter weakEnemies[3][5] = {
+            { ME::CULTIST, ME::JAW_WORM, ME::TWO_LOUSE, ME::SMALL_SLIMES },
+            { ME::SPHERIC_GUARDIAN, ME::CHOSEN, ME::SHELL_PARASITE, ME::THREE_BYRDS, ME::TWO_THIEVES },
+            { ME::THREE_DARKLINGS, ME::ORB_WALKER, ME::THREE_SHAPES },
     };
-    static const float weights[3][5] = {
+    constexpr float weakWeights[3][5] = {
             { 1.0f/4, 1.0f/4, 1.0f/4, 1.0f/4 },
             { 1.0f/5, 1.0f/5, 1.0f/5, 1.0f/5, 1.0f/5 },
             { 1.0f/3, 1.0f/3, 1.0f/3 }
     };
-    static const int weakCount[3] {4,5,3};
+    constexpr int weakCount[3] {4,5,3};
 
-    populateMonsterList(weakEnemies[act], weights[act], weakCount[act], act == 1 ? 3 : 2);
+    populateMonsterList(weakEnemies[act-1], weakWeights[act - 1], weakCount[act - 1], act == 1 ? 3 : 2);
 }
 
-void GameState::generateStrongEnemies(int count) {
+void GameState::generateStrongEnemies() {
+    constexpr MonsterEncounter strongEnemies[3][10] = {
+            { ME::GREMLIN_GANG, ME::LOTS_OF_SLIMES, ME::RED_SLAVER, ME::EXORDIUM_THUGS, ME::EXORDIUM_WILDLIFE, ME::BLUE_SLAVER, ME::LOOTER, ME::LARGE_SLIME, ME::THREE_LOUSE, ME::TWO_FUNGI_BEASTS },
+            { ME::CHOSEN_AND_BYRDS, ME::SENTRY_AND_SPHERE, ME::CULTIST_AND_CHOSEN, ME::THREE_CULTIST, ME::SHELLED_PARASITE_AND_FUNGI, ME::SNECKO, ME::SNAKE_PLANT, ME::CENTURION_AND_HEALER },
+            { ME::SPIRE_GROWTH, ME::TRANSIENT, ME::FOUR_SHAPES, ME::MAW, ME::SPHERE_AND_TWO_SHAPES, ME::JAW_WORM_HORDE, ME::THREE_DARKLINGS, ME::WRITHING_MASS }
+    };
+    constexpr float strongWeights[3][10] = {
+            { 1.0f/16, 1.0f/16, 1.0f/16, 1.5f/16, 1.5f/16, 2.0f/16, 2.0f/16, 2.0f/16, 2.0f/16, 2.0f/16 },
+            { 2.0f/29, 2.0f/29, 3.0f/29, 3.0f/29, 3.0f/29, 4.0f/29, 6.0f/29, 6.0f/29 },
+            { 1.0f/8, 1.0f/8, 1.0f/8, 1.0f/8, 1.0f/8, 1.0f/8, 1.0f/8, 1.0f/8,},
+    };
+    constexpr int strongCount[3] {10, 8, 8};
 
+    populateFirstStrongEnemy(strongEnemies[act-1], strongWeights[act-1], strongCount[act-1]);
+    populateMonsterList(strongEnemies[act-1], strongWeights[act-1], strongCount[act-1], 12);
 }
+
+
 
 int rollElite(Random &monsterRng) {
     float roll = monsterRng.random();
 
     float currentWeight = 0.0f;
     currentWeight += 1.0f/3;
-    if (roll >= currentWeight) {
+    if (roll < 1.0f/3) {
         return 0;
     }
 
-    currentWeight += 1.0f/3;
-    if (roll >= currentWeight) {
+    if (roll < 2.0f/3) {
         return 1;
     } else {
         return 2;
@@ -1022,16 +1100,16 @@ int rollElite(Random &monsterRng) {
 
 void GameState::generateElites() {
     static const MonsterEncounter elites[3][3] = {
-            { MonsterEncounter::GREMLIN_NOB, MonsterEncounter::LAGAVULIN, MonsterEncounter::THREE_SENTRIES },
-            { MonsterEncounter::GREMLIN_LEADER, MonsterEncounter::SLAVERS, MonsterEncounter::BOOK_OF_STABBING },
-            { MonsterEncounter::GIANT_HEAD, MonsterEncounter::NEMESIS, MonsterEncounter::REPTOMANCER },
+            { ME::GREMLIN_NOB, ME::LAGAVULIN, ME::THREE_SENTRIES },
+            { ME::GREMLIN_LEADER, ME::SLAVERS, ME::BOOK_OF_STABBING },
+            { ME::GIANT_HEAD, ME::NEMESIS, ME::REPTOMANCER },
     };
 
     for(int i = 0; i < 10; ++i) {
         if (eliteMonsterListSize == 0) {
-            eliteMonsterList[eliteMonsterListSize++] = elites[act][rollElite(monsterRng)];
+            eliteMonsterList[eliteMonsterListSize++] = elites[act-1][rollElite(monsterRng)];
         } else {
-            auto toAdd = elites[act][rollElite(monsterRng)];
+            auto toAdd = elites[act-1][rollElite(monsterRng)];
             if (toAdd != eliteMonsterList[eliteMonsterListSize-1]) {
                 eliteMonsterList[eliteMonsterListSize++] = toAdd;
             } else {
@@ -1044,12 +1122,15 @@ void GameState::generateElites() {
 
 MonsterEncounter sts::getBoss(Random &monsterRng, int act) {
     static const MonsterEncounter bosses[3][3] = {
-            { MonsterEncounter::THE_GUARDIAN, MonsterEncounter::HEXAGHOST, MonsterEncounter::SLIME_BOSS },
-            { MonsterEncounter::AUTOMATON, MonsterEncounter::COLLECTOR, MonsterEncounter::CHAMP },
-            { MonsterEncounter::AWAKENED_ONE, MonsterEncounter::TIME_EATER, MonsterEncounter::DONU_AND_DECA },
+            { ME::THE_GUARDIAN, ME::HEXAGHOST, ME::SLIME_BOSS },
+            { ME::AUTOMATON, ME::COLLECTOR, ME::CHAMP },
+            { ME::AWAKENED_ONE, ME::TIME_EATER, ME::DONU_AND_DECA },
     };
 
-    java::Collections::shuffle(bosses[act], bosses[act]+3, java::Random(monsterRng.randomLong()));
+    int indices[3] = {0,1,2};
+
+    java::Collections::shuffle(indices, indices+3, java::Random(monsterRng.randomLong()));
+    return bosses[act-1][indices[0]];
 }
 
 

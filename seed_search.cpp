@@ -295,14 +295,14 @@ std::vector<int64_t> testCandidatesMt(const std::vector<candidate> &candidates, 
 std::vector<std::int64_t> sts::runSearch2(const std::vector<candidate> &candidates) {
     std::vector<std::int64_t> matchedSeeds;
 
-    int threads = 8;
+    int threads = 16;
     int offset = 0;
     while (offset < candidates.size()) {
         std::string time = getTime();
         auto matchedSeedsVec = testCandidatesMt(candidates, offset, threads);
         matchedSeeds.insert(matchedSeeds.end(), matchedSeedsVec.begin(), matchedSeedsVec.end());
         time = getTime();
-        std::cout << time << " found " << matchedSeedsVec.size() << " results" << std::endl;
+//        std::cout << time << " found " << matchedSeedsVec.size() << " results" << std::endl;
         offset += threads;
     }
 

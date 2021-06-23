@@ -163,6 +163,8 @@ SeedResultStats getStats(std::vector<SeedResult> vec) {
 
 int main(int argc, const char ** argv) {
 
+    runNormalSearch();
+
 //    std::uint64_t seed = 1;
 //    auto vec = testSeedsMt(1, 100, 8, [](auto seed) {
 //        return Neow::generateRewards(seed).at(1).r == Neow::Reward::THREE_ENEMY_KILL;
@@ -171,52 +173,52 @@ int main(int argc, const char ** argv) {
 //        std::cout << SeedHelper::getString(x) << '\n';
 //    }
 
-    std::string seedStr = "4";
-    std::int64_t seed = SeedHelper::getLong(seedStr);
-    Map map = Map::fromSeed(seed, 0, 1);
-    std::cout << seedStr  << '\n';
-    std::cout << map.toString() << '\n';
-    GameState gs = GameState::createGameState(seed, 0);
-
-    gs.initEnemies();
-
-    for (int i = 0; i < gs.monsterListSize; ++i) {
-        std::cout << monsterEncounterStrings[(int)gs.monsterList[i]] << ", ";
-    }
-    std::cout << '\n';
-
-    for (int i = 0; i < gs.eliteMonsterListSize; ++i) {
-        std::cout << monsterEncounterStrings[(int)gs.eliteMonsterList[i]] << ", ";
-    }
-    std::cout << '\n';
-
-    std::cout << monsterEncounterStrings[(int)gs.boss] << '\n';
-
-
-    gs.floor = 1;
-    auto r = gs.getCombatRewards(sts::Room::MONSTER, false);
-    std::cout << r.toString() << '\n';
-
-    gs.floor = 2;
-    r = gs.getCombatRewards(sts::Room::MONSTER, false);
-    std::cout << r.toString() << '\n';
-
-    gs.floor = 3;
-    auto event = gs.getEventRoomEvent();
-    std::cout << eventStrings[(int)event] << '\n';
-
-    gs.floor = 3;
-    auto ss = gs.getShopScreen();
-    std::cout << ss.toString(true) << '\n';
-
-    gs.floor = 4;
-    r = gs.getCombatRewards(sts::Room::MONSTER, false);
-    std::cout << r.toString() << '\n';
-
-    gs.floor = 5;
-    r = gs.getCombatRewards(sts::Room::MONSTER, false);
-    std::cout << r.toString() << '\n';
-
+//    std::string seedStr = "4";
+//    std::int64_t seed = SeedHelper::getLong(seedStr);
+//    Map map = Map::fromSeed(seed, 0, 1);
+//    std::cout << seedStr  << '\n';
+//    std::cout << map.toString() << '\n';
+//    GameState gs = GameState::createGameState(seed, 0);
+//
+//    gs.initEnemies();
+//
+//    for (int i = 0; i < gs.monsterListSize; ++i) {
+//        std::cout << monsterEncounterStrings[(int)gs.monsterList[i]] << ", ";
+//    }
+//    std::cout << '\n';
+//
+//    for (int i = 0; i < gs.eliteMonsterListSize; ++i) {
+//        std::cout << monsterEncounterStrings[(int)gs.eliteMonsterList[i]] << ", ";
+//    }
+//    std::cout << '\n';
+//
+//    std::cout << monsterEncounterStrings[(int)gs.boss] << '\n';
+//
+//
+//    gs.floor = 1;
+//    auto r = gs.getCombatRewards(sts::Room::MONSTER, false);
+//    std::cout << r.toString() << '\n';
+//
+//    gs.floor = 2;
+//    r = gs.getCombatRewards(sts::Room::MONSTER, false);
+//    std::cout << r.toString() << '\n';
+//
+//    gs.floor = 3;
+//    auto event = gs.getEventRoomEvent();
+//    std::cout << eventStrings[(int)event] << '\n';
+//
+//    gs.floor = 3;
+//    auto ss = gs.getShopScreen();
+//    std::cout << ss.toString(true) << '\n';
+//
+//    gs.floor = 4;
+//    r = gs.getCombatRewards(sts::Room::MONSTER, false);
+//    std::cout << r.toString() << '\n';
+//
+//    gs.floor = 5;
+//    r = gs.getCombatRewards(sts::Room::MONSTER, false);
+//    std::cout << r.toString() << '\n';
+//
 
 //    describeSeeds({SeedHelper::getLong("DCBWYBYGSM")});
 //    runCandidateFilter();

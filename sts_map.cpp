@@ -67,7 +67,7 @@ void initNodes(Map &map) {
     }
 }
 
-Map Map::fromSeed(std::int64_t seed, int ascension, int act, bool setBurning) {
+Map Map::fromSeed(std::int64_t seed, int ascension, int act, bool setBurning, bool isBadMap) {
     Map map;
     initNodes(map);
     auto offset = act == 1 ? 1 : act*(100*(act-1));
@@ -75,7 +75,7 @@ Map Map::fromSeed(std::int64_t seed, int ascension, int act, bool setBurning) {
     createPaths(map, mapRng);
     filterRedundantEdgesFromFirstRow(map);
     assignRooms(map, mapRng, ascension);
-    if (setBurning) {
+    if (setBurning or isBadMap) {
         assignBurningElite(map, mapRng);
     }
     return map;
@@ -893,6 +893,23 @@ void sts::assignBurningElite(Map &map, Random &mapRng) {
     int idx = mapRng.random(eliteRoomCount-1);
     map.burningEliteX = eliteRooms.at(idx).x;
     map.burningEliteY = eliteRooms.at(idx).y;
+	int buff = mapRng.random(3);
+	switch (buff) {
+	case 0:
+		map.eliteBuff = EliteBuff::STRENGTH;
+		break;
+	case 1:
+		map.eliteBuff = EliteBuff::MAX_HP;
+		break;
+    case 2:
+	    map.eliteBuff = EliteBuff::METALLICIZE;
+		break;
+	case 3:
+		map.eliteBuff = EliteBuff::REGENERATE;
+		break;
+    default:
+	    map.eliteBuff = EliteBuff::NONE;
+	}
 }
 
 

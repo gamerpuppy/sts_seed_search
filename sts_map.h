@@ -27,6 +27,14 @@ namespace sts {
         NONE,
     };
 
+    enum class EliteBuff {
+        STRENGTH = 0,
+		MAX_HP,
+        METALLICIZE, 
+		REGENERATE, 
+        NONE,
+    };
+
     static const char* roomStrings[] = {
         "SHOP",
         "REST",
@@ -35,6 +43,14 @@ namespace sts {
         "MONSTER",
         "TREASURE",
         "BOSS",
+        "NONE",
+    };
+
+    static const char* eliteBuffStrings[] = {
+        "STRENGTH",
+		"MAX_HP",
+        "METALLICIZE", 
+		"REGENERATE", 
         "NONE",
     };
 
@@ -66,13 +82,16 @@ namespace sts {
     struct Map {
         int burningEliteX = -1;
         int burningEliteY = -1;
+		bool isBad = false;
+		int firstFloorSixX = -1;
+		EliteBuff eliteBuff = EliteBuff::NONE;
         std::array<std::array<MapNode, 7>, 15> nodes;
 
         MapNode &getNode(int x, int y);
         const MapNode &getNode(int x, int y) const;
 
         std::string toString(bool showRoomSymbols=true) const;
-        static Map fromSeed(std::int64_t seed, int ascension= 0, int act= 1, bool assignBurningElite=false);
+        static Map fromSeed(std::int64_t seed, int ascension= 0, int act= 1, bool assignBurningElite=false, bool isBadMap=false);
 
         void normalizeParents();
     };

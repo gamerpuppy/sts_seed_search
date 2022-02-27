@@ -883,7 +883,7 @@ void sts::assignBurningElite(Map &map, Random &mapRng) {
 
     for (int row = 0; row < 15; ++row) {
         for (int col = 0; col < 7; ++col) {
-            if (map.getNode(row,col).room == sts::Room::ELITE) {
+            if (map.getNode(col,row).room == sts::Room::ELITE) {
                 eliteRooms[eliteRoomCount++] = IntTuple(col,row);
             }
         }

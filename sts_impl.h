@@ -286,7 +286,7 @@ namespace Neow {
             }
 
             case Drawback::PERCENT_DAMAGE:
-                rewards[2].r = static_cast<Reward>(11 + r.random(0, 7));
+                rewards[2].r = static_cast<Reward>(11 + r.random(0, 6));
                 break;
 
             default:    // should not happen

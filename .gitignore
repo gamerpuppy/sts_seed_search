@@ -2,3 +2,8 @@
 /cmake-build-debug/
 .idea*
 /files/
+*.cmake
+Cmake*
+Makefile
+sts_seed_search
+*.txt

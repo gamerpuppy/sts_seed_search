@@ -17,7 +17,6 @@
 #include "sts_events.h"
 
 
-
 //void analyzeSeeds() {
 //    std::string s;
 //    do {
@@ -160,9 +159,32 @@ SeedResultStats getStats(std::vector<SeedResult> vec) {
 }
 
 
+void printMaps(uint64_t seedStart = 1, uint64_t seedEnd = 1000000) {
+
+    //std::ofstream mapFile;
+    //mapFile.open("mapTest.txt");
+    
+    //time_t startTime, endTime;
+    //startTime = time(NULL);
+    
+    for (uint64_t seed = seedStart; seed <= seedEnd; seed++) {
+    //for (uint64_t seed = 1; seed <= 1000000; seed++) {
+        Map map1 =  Map::fromSeed(seed, 0, 1, false, false);
+        std::cout << SeedHelper::getString(seed) << '\n';
+        std::cout << map1.toString(true) << '\n';
+    }
+    
+    //endTime = time(NULL);
+    //std::cout << "time elapsed: " << endTime - startTime << '\n';
+
+}
+
+
 
 int main(int argc, const char ** argv) {
-
+    
+    printMaps();
+    return 0;
     runNormalSearch();
 
 //    std::uint64_t seed = 1;

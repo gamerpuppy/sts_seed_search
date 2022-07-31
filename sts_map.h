@@ -29,9 +29,9 @@ namespace sts {
 
     enum class EliteBuff {
         STRENGTH = 0,
-		MAX_HP,
+        MAX_HP,
         METALLICIZE, 
-		REGENERATE, 
+        REGENERATE, 
         NONE,
     };
 
@@ -48,47 +48,65 @@ namespace sts {
 
     static const char* eliteBuffStrings[] = {
         "STRENGTH",
-		"MAX_HP",
+        "MAX_HP",
         "METALLICIZE", 
-		"REGENERATE", 
+        "REGENERATE", 
         "NONE",
     };
 
     char getRoomSymbol(Room);
 
     struct MapNode {
-        int x;
-        int y;
+        int8_t x;
+        int8_t y;
 
-        int parentCount = 0;
-        std::array<int, 6> parents;
+        int8_t parentCount = 0;
+        std::array<int8_t, 6> parents;
+        int8_t parentBits = 0;
+        int8_t parentMults[7] = {};
+        
 
-        int edgeCount = 0;
-        std::array<int, 3> edges;
+        int8_t edgeCount = 0;
+        std::array<int8_t, 3> edges;
+        int8_t edgeBits = 0;
 
         int maxXParent = -1;
         int minXParent = 0x7FFFFFFF;
         Room room = Room::NONE;
 
-        void addParent(int parent);
-        void addEdge(int edge);
+        void addParent(int8_t parent);
+        void addEdge(int8_t edge);
         char getRoomSymbol() const;
-        int getMaxEdge() const;
-        int getMinEdge() const;
-        int getMaxXParent() const;
-        int getMinXParent() const;
+        int8_t getMaxEdge() const;
+        int8_t getMinEdge() const;
+        int8_t getMaxXParent() const;
+        int8_t getMinXParent() const;
     };
 
     struct Map {
-        int burningEliteX = -1;
-        int burningEliteY = -1;
-		bool isBad = false;
-		int firstFloorSixX = -1;
-		EliteBuff eliteBuff = EliteBuff::NONE;
+        
+        /*
+        NEIGH is used in cPANX and gCA
+        c = NEIGH[a][b] means:
+            a in {0, ..., 112} is the set of neighbors of a node as bits
+                valid neighborhoods are always intervals of length 0, 1, 2, or 3
+            b in {0, 1} indicates whether we want the min or max neighbor
+            c in {0, ..., 8} indicates information of the min or max neighbor
+                {0, ..., 6}: the min or max neighbor
+                {7, 8} a useful convention to indicate invalid or empty neighborhoods
+                
+        */
+        static constexpr int8_t NEIGH[113][2] = {7,8,0,0,1,1,0,1,2,2,0,2,1,2,0,2,3,3,7,8,1,3,7,8,2,3,7,8,1,3,7,8,4,4,7,8,7,8,7,8,2,4,7,8,7,8,7,8,3,4,7,8,7,8,7,8,2,4,7,8,7,8,7,8,5,5,7,8,7,8,7,8,7,8,7,8,7,8,7,8,3,5,7,8,7,8,7,8,7,8,7,8,7,8,7,8,4,5,7,8,7,8,7,8,7,8,7,8,7,8,7,8,3,5,7,8,7,8,7,8,7,8,7,8,7,8,7,8,6,6,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,4,6,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,5,6,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,7,8,4,6};
+
+        int8_t burningEliteX = -1;
+        int8_t burningEliteY = -1;
+        bool isBad = false;
+        int8_t firstFloorSixX = -1;
+        EliteBuff eliteBuff = EliteBuff::NONE;
         std::array<std::array<MapNode, 7>, 15> nodes;
 
-        MapNode &getNode(int x, int y);
-        const MapNode &getNode(int x, int y) const;
+        MapNode &getNode(int8_t x, int8_t y);
+        const MapNode &getNode(int8_t x, int8_t y) const;
 
         std::string toString(bool showRoomSymbols=true) const;
         static Map fromSeed(std::int64_t seed, int ascension= 0, int act= 1, bool assignBurningElite=false, bool isBadMap=false);

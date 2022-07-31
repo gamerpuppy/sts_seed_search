@@ -318,7 +318,8 @@ void filterRedundantEdgesFromFirstRow(Map &map) {
     }
 }
 
-inline int getCommonAncestor(const Map &map, int x1, int x2, int y) {
+inline bool getCommonAncestor(const Map &map, const uint8_t x1, const uint8_t x2, const uint8_t y) {
+    /* old code:
     if (y < 0) {
         return -1;
     }
@@ -342,10 +343,16 @@ inline int getCommonAncestor(const Map &map, int x1, int x2, int y) {
         return leftX;
     }
     return -1;
+    */
+    constexpr int8_t FLIP[7][14] = {1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0};
+	return Map::NEIGH[
+		map.getNode(x1 + (x2-x1)*FLIP[x1][y], y).parentBits][1] == 
+		Map::NEIGH[map.getNode(x2 + (x1-x2)*FLIP[x1][y], y).parentBits][0];
 }
 
 
 inline int8_t choosePathParentLoopRandomizer(const Map &map, Random &rng, const int8_t curX, const int8_t curY, int8_t newX) {
+    /* old code:
     const MapNode &newEdgeDest = map.getNode(newX, curY + 1);
     
     for (int8_t i = 0; i < newEdgeDest.parentCount; i++) {
@@ -353,7 +360,7 @@ inline int8_t choosePathParentLoopRandomizer(const Map &map, Random &rng, const 
         if (curX == parentX) {
             continue;
         }
-        if (getCommonAncestor(map, parentX, curX, curY) == -1) {
+        if (getCommonAncestor(map, parentX, curX, curY)) {
             continue;
         }
 
@@ -377,6 +384,35 @@ inline int8_t choosePathParentLoopRandomizer(const Map &map, Random &rng, const 
         }
     }
 
+    return newX;
+    */
+    const MapNode &newEdgeDest = map.getNode(newX, curY + 1);
+	
+	static constexpr int8_t LR[7] = {6,13,27,54,108,88,48};
+	
+    const int8_t neigh = newEdgeDest.parentBits & LR[curX];
+	int8_t mult = 0;
+	
+	static constexpr int8_t MINMAX[97][2] = {7,7,0,7,1,7,0,1,2,7,0,2,1,2,7,7,3,7,0,3,1,3,7,7,2,3,7,7,7,7,7,7,4,7,0,4,1,4,7,7,2,4,7,7,7,7,7,7,3,4,7,7,7,7,7,7,7,7,7,7,7,7,7,7,5,7,0,5,1,5,7,7,2,5,7,7,7,7,7,7,3,5,7,7,7,7,7,7,7,7,7,7,7,7,7,7,4,5,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,6,7,0,6,1,6,7,7,2,6,7,7,7,7,7,7,3,6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,4,6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,5,6};
+	
+	int8_t i = MINMAX[neigh][0];
+	if (i < 7){
+		if (getCommonAncestor(map, i, curX, curY)) {
+            mult += newEdgeDest.parentMults[i];
+        }
+		i = MINMAX[neigh][1];
+		
+		if (i < 7 && getCommonAncestor(map, i, curX, curY)) {
+			mult += newEdgeDest.parentMults[i];
+		}
+		
+	}
+	
+	static constexpr int8_t cPPLR[7][7][6] = {1,0,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,1,2,1,2,0,1,2,0,1,2,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,2,3,2,3,2,3,2,3,2,3,2,3,1,2,3,1,2,3,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,3,4,3,4,3,4,3,4,3,4,3,4,3,4,3,4,3,4,2,3,4,2,3,4,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,4,5,4,5,4,5,4,5,4,5,4,5,4,5,4,5,4,5,4,5,4,5,4,5,3,4,5,3,4,5,3,4,3,4,3,4,3,4,3,4,3,4,5,6,5,6,5,6,5,6,5,6,5,6,5,6,5,6,5,6,5,6,5,6,5,6,5,6,5,6,5,6,4,5,6,4,5,6,4,5,4,5,4,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,5,6,5,5,6,5};
+	for (int8_t i = 0; i < mult; i++){
+		newX = cPPLR[curX][newX][rng.nextInt(6)];
+	}
+	
     return newX;
 }
 
@@ -830,7 +866,7 @@ void normalizeMap(Map &map) {
     Map copy = map;
 
     for (int r = MAP_HEIGHT-1; r >= 0; --r) {
-        std::array<MapNode, MAP_WIDTH> &row = map.nodes.at(r);
+        auto &row = map.nodes.at(r);
         int open = 0;
 
         for (int c = 0; c < MAP_WIDTH; ++c) {
@@ -860,7 +896,7 @@ void normalizeMap(Map &map) {
 
     for (int r = MAP_HEIGHT-1; r > 0; --r) {
 
-        std::array<MapNode, MAP_WIDTH> &row = map.nodes.at(r);
+        auto &row = map.nodes.at(r);
         for (int c = 0; c < MAP_WIDTH; ++c) {
             MapNode &node = row.at(c);
             if (node.edgeCount == 0) {

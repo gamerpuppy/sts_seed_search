@@ -239,16 +239,16 @@ inline void MapNode::addEdge(int8_t edge) {
 
 inline int8_t MapNode::getMaxEdge() const {
 //    assert(edgeCount > 0);
-    return edges.at(edgeCount-1);
+    //return edges.at(edgeCount-1);
     
-    //return Map::NEIGH[edgeBits][1];
+    return Map::NEIGH[edgeBits][1];
 }
 
 inline int8_t MapNode::getMinEdge() const {
 //    assert(edgeCount > 0);
-    return edges.at(0);
+    //return edges.at(0);
     
-    //return Map::NEIGH[edgeBits][0];
+    return Map::NEIGH[edgeBits][0];
 }
 
 inline int8_t MapNode::getMaxXParent() const {
@@ -417,6 +417,7 @@ inline int8_t choosePathParentLoopRandomizer(const Map &map, Random &rng, const 
 }
 
 inline int8_t choosePathAdjustNewX(const Map &map, const int8_t curX, const int8_t curY, int8_t newEdgeX) {
+    /* old code:
     if (curX != 0) {
         auto right_node = map.getNode(curX - 1, curY);
         if (right_node.edgeCount > 0) {
@@ -437,6 +438,16 @@ inline int8_t choosePathAdjustNewX(const Map &map, const int8_t curX, const int8
         }
     }
     return newEdgeX;
+    */
+    
+    static constexpr int8_t LEFT[7] = {7,0,1,2,3,4,5};
+	static constexpr int8_t cPANX[7][9][8] = {0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,1,2,2,2,2,2,2,0,1,2,3,3,3,3,3,0,1,2,3,4,4,4,4,0,1,2,3,4,5,5,5,0,1,2,3,4,5,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,0,1,2,2,2,2,2,2,0,1,2,3,3,3,3,3,0,1,2,3,4,4,4,4,0,1,2,3,4,5,5,5,0,1,2,3,4,5,6,6,0,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,0,1,2,2,2,2,2,2,0,1,2,2,2,2,2,2,0,1,2,2,2,2,2,2,0,1,2,3,3,3,3,3,0,1,2,3,4,4,4,4,0,1,2,3,4,5,5,5,0,1,2,3,4,5,6,6,0,1,2,2,2,2,2,2,0,1,2,2,2,2,2,2,0,1,2,3,3,3,3,3,0,1,2,3,3,3,3,3,0,1,2,3,3,3,3,3,0,1,2,3,3,3,3,3,0,1,2,3,4,4,4,4,0,1,2,3,4,5,5,5,0,1,2,3,4,5,6,6,0,1,2,3,3,3,3,3,0,1,2,3,3,3,3,3,0,1,2,3,4,4,4,4,0,1,2,3,4,4,4,4,0,1,2,3,4,4,4,4,0,1,2,3,4,4,4,4,0,1,2,3,4,4,4,4,0,1,2,3,4,5,5,5,0,1,2,3,4,5,6,6,0,1,2,3,4,4,4,4,0,1,2,3,4,4,4,4,0,1,2,3,4,5,5,5,0,1,2,3,4,5,5,5,0,1,2,3,4,5,5,5,0,1,2,3,4,5,5,5,0,1,2,3,4,5,5,5,0,1,2,3,4,5,5,5,0,1,2,3,4,5,6,6,0,1,2,3,4,5,5,5,0,1,2,3,4,5,5,5,0,1,2,3,4,5,6,6,0,1,2,3,4,5,6,6,0,1,2,3,4,5,6,6,0,1,2,3,4,5,6,6,0,1,2,3,4,5,6,6,0,1,2,3,4,5,6,6,0,1,2,3,4,5,6,6,0,1,2,3,4,5,6,6,0,1,2,3,4,5,6,6};
+	
+	return cPANX[
+		newEdgeX][
+		Map::NEIGH[map.getNode(LEFT[curX], curY).edgeBits][1]][
+		Map::NEIGH[map.getNode(curX + 1, curY).edgeBits][0]
+	];
 }
 
 
@@ -515,8 +526,14 @@ std::string Map::toString(bool showRoomSymbols) const {
     for(int row_num = 14; row_num >= 0; row_num--) {
         str.append("\n ").append(paddingGenerator(left_padding_size));
 
-
-        for (auto &node : nodes.at(row_num)) {
+        /*
+        I added an 8th (dud) node to each row 
+        it caused an extra "   " to be added to each row
+        now we explicitly check only 7 nodes on each row
+        */
+        //for (auto &node : nodes.at(row_num)) {
+        for (int i = 0; i < MAP_WIDTH; i++){
+            auto &node = nodes.at(row_num)[i];
             std::string right = " ";
             std::string mid = " ";
             std::string node_symbol = " ";
@@ -541,7 +558,14 @@ std::string Map::toString(bool showRoomSymbols) const {
         str.append("\n").append(std::to_string(row_num)).append(" ");
         str.append(paddingGenerator(left_padding_size - (int)std::to_string(row_num).length()));
 
-        for (auto &node : nodes.at(row_num)) {
+        /*
+        I added an 8th (dud) node to each row 
+        it caused an extra "   " to be added to each row
+        now we explicitly check only 7 nodes on each row
+        */
+        //for (auto &node : nodes.at(row_num)) {
+        for (int i = 0; i < MAP_WIDTH; i++){
+            auto &node = nodes.at(row_num)[i];
             std::string node_symbol = " ";
 
             if (row_num == lastRow) {

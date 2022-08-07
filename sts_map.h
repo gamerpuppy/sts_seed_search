@@ -103,7 +103,7 @@ namespace sts {
         bool isBad = false;
         int8_t firstFloorSixX = -1;
         EliteBuff eliteBuff = EliteBuff::NONE;
-        std::array<std::array<MapNode, 7>, 15> nodes;
+        std::array<std::array<MapNode, 8>, 15> nodes;
 
         MapNode &getNode(int8_t x, int8_t y);
         const MapNode &getNode(int8_t x, int8_t y) const;

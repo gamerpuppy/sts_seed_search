@@ -109,9 +109,12 @@ namespace sts {
         const MapNode &getNode(int8_t x, int8_t y) const;
 
         std::string toString(bool showRoomSymbols=true) const;
+        std::string toGraphString() const;
         static Map fromSeed(std::int64_t seed, int ascension= 0, int act= 1, bool assignBurningElite=false, bool isBadMap=false);
 
         void normalizeParents();
+        bool hasSpeedyPath();
+        int reduceContractions(bool verbose);
     };
 
     struct Path {

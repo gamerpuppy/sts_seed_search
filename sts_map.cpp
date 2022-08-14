@@ -99,6 +99,122 @@ void Map::normalizeParents() {
     }
 }
 
+bool Map::hasSpeedyPath(){
+	
+	int currfloor = 0;
+	
+	for (int i = 0; i < 6; i++){
+		MapNode mynode = nodes[0][i];
+		char mysymb = mynode.getRoomSymbol();
+		if (mysymb == 'M'){
+			currfloor |= 1<<i;
+		}
+	}
+	
+	for (int y = 0; currfloor and y < 14; y++){
+		int nextfloor = 0;
+		int x = 0;
+		if (currfloor){
+			while(currfloor){
+				if (currfloor & 1){
+					MapNode mynode = nodes[y][x];
+					for (int i = 0; i < mynode.edgeCount; i++){
+						MapNode nextnode = nodes[y+1][mynode.edges[i]];
+						char nextsymb = nextnode.getRoomSymbol();
+						if (nextsymb != 'M' and nextsymb != 'E'){
+							nextfloor |= 1<<nextnode.x;
+							//std::cout << "x,y =\t" << x << ',' << y << " sees: \t" << nextnode.x << "\n";
+						}
+					}
+				}
+				x++;
+				currfloor >>= 1;
+			}
+			
+			currfloor = nextfloor;
+		}
+		
+		else{
+			return false;
+		}
+	}
+	
+	return currfloor != 0;
+}
+
+/*
+remove redundant nodes
+if nodes A & B have the same label, 
+and DOWN(A) is a subset of DOWN(B), 
+and UP(A) is a subset of UP(B), then 
+A may be erased
+*/
+int Map::reduceContractions(bool verbose){
+    int ctr = 0;
+    
+    for (int y = 0; y < MAP_HEIGHT; y++){
+        
+        if (verbose){
+            std::cout << "\ny = " << y << "...\n";
+        }
+        
+        for (int i = 0; i < MAP_WIDTH; i++){
+            
+            MapNode &node1 = nodes[y][i];
+            
+            if (node1.room == Room::NONE){
+                continue;
+            }
+            
+            if (verbose){
+                std::cout << "\tx1 = " << i << " has up/down: "
+                    << static_cast<int>(node1.edgeBits) << "/"
+                    << static_cast<int>(node1.parentBits) << '\n';
+            }
+            
+            for (int j = i+1; j < MAP_WIDTH; j++){
+                MapNode &node2 = nodes[y][j];
+                
+                if (verbose){
+                    std::cout << "\t\tx2 = " << j << " has up/down: "
+                            << static_cast<int>(node2.edgeBits) << "/"
+                            << static_cast<int>(node2.parentBits) << '\n';
+                }
+                
+                if (node1.room != Room::NONE && node1.room == node2.room){
+                    if (
+                        (node1.parentBits & node2.parentBits) == node1.parentBits
+                        && (node1.edgeBits & node2.edgeBits) == node1.edgeBits
+                    ){
+                        if (verbose){
+                            std::cout << "\t\tREDUNDANCY: " << i << node1.getRoomSymbol() 
+                                << " -> " << j << node2.getRoomSymbol() << '\n';
+                        }
+                        
+                        node1.room = Room::NONE;
+                        ctr++;
+                    }
+                    
+                    else if (
+                        (node1.parentBits & node2.parentBits) == node2.parentBits
+                        && (node1.edgeBits & node2.edgeBits) == node2.edgeBits
+                    ){
+                        if (verbose){
+                            std::cout << "\t\tREDUNDANCY: " << j << node2.getRoomSymbol() << 
+                                " -> " << i << node1.getRoomSymbol() << '\n';
+                        }
+                        
+                        node2.room = Room::NONE;
+                        ctr++;
+                        
+                    }
+                }
+            }
+        }
+    }
+    return ctr;
+}
+
 Path Path::fromBits(std::uint64_t bits) {
     std::int64_t newBits = 0;
     for (int8_t y = 0; y < 15; ++y) {
@@ -281,11 +397,21 @@ inline int8_t MapNode::getMinXParent() const {
 #endif
 }
 
+/*
+removeEdge & removeParent* first used in filterRedundantEdgesFromFirstRow
+delete edges by swapping entries from edge array backwards & adjusting edge count
+same for parents
+*/
 void removeEdge(MapNode &node, int8_t idx) {
     for (int8_t i = idx; i < node.edgeCount-1; i++) {
         std::swap(node.edges[i], node.edges[i+1]);
     }
     --node.edgeCount;
+    
+    node.edgeBits = 0;
+    for (int8_t i = 0; i < node.edgeCount; i++){
+        node.edgeBits |= 1 << node.edges[i];
+    }
 }
 
 void removeParentAtIdx(MapNode &node, int8_t parentIdx) {
@@ -300,6 +426,11 @@ void removeParent(MapNode &node, int8_t parent) {
         if (node.parents[i] == parent) {
             removeParentAtIdx(node, i);
         }
+    }
+    
+    node.parentBits = 0;
+    for (int8_t i = 0; i < node.parentCount; i++){
+        node.parentBits |= 1 << node.parents[i];
     }
 }
 
@@ -349,7 +480,6 @@ inline bool getCommonAncestor(const Map &map, const uint8_t x1, const uint8_t x2
 		map.getNode(x1 + (x2-x1)*FLIP[x1][y], y).parentBits][1] == 
 		Map::NEIGH[map.getNode(x2 + (x1-x2)*FLIP[x1][y], y).parentBits][0];
 }
-
 
 inline int8_t choosePathParentLoopRandomizer(const Map &map, Random &rng, const int8_t curX, const int8_t curY, int8_t newX) {
     /* old code:
@@ -449,7 +579,6 @@ inline int8_t choosePathAdjustNewX(const Map &map, const int8_t curX, const int8
 		Map::NEIGH[map.getNode(curX + 1, curY).edgeBits][0]
 	];
 }
-
 
 int8_t chooseNewPath(Map &map, Random &rng, const uint8_t curX, const uint8_t curY) {
     /* old code:
@@ -586,6 +715,68 @@ std::string Map::toString(bool showRoomSymbols) const {
     }
 
     return str;
+}
+
+
+/*
+prints map to a string in the following format:
+a1,a2,b1,b2,...
+    15 * 7 pairs of integers separated by commas
+
+each pair x1,x2 encodes information about a node:
+    x1: the node type
+        SHOP = 0,
+        REST = 1,
+        EVENT = 2,
+        ELITE (burning) = 3,
+        MONSTER = 4,
+        TREASURE = 5,
+        BOSS = 6,
+        NONE = 7,
+        ELITE (normal) = 8
+    x2:
+        the set of edges (i.e., its out-neighborhood)
+        encoded as an 8-bit integer
+
+the pair correspond to nodes which are sorted 
+w.r.t the (y, x) lexicographic ordering
+e.g., (y1, x1) comes before (y2, x2) iff
+    y1 < y2, OR 
+    y1 = y2 AND x1 < x2
+*/
+std::string Map::toGraphString() const {
+    std::string lstr, estr;
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        std::cout << "y = " << y << '\n';
+        auto &row = nodes.at(y);
+        for (int x = 0; x < MAP_WIDTH; x++){
+            auto &node = row[x];
+            
+            lstr += 
+                (
+                    node.room == Room::ELITE 
+                    && y == burningEliteY 
+                    && x == burningEliteX) 
+                ? 'F' : node.getRoomSymbol();
+            
+            /*
+            std::cout << "\tx = " << x 
+            << " (" << node.getRoomSymbol() << ") ["
+            << static_cast<int>(node.edgeBits) << "]\n" ;
+            
+            for (int i = 0; i < node.edgeCount; i++){
+                int x2 = node.edges[i];
+                auto &node2 = nodes[y+1][x2];
+                std::cout << " \t\t~ " << x2 
+                << " (" << node2.getRoomSymbol() << ")\n";
+            }
+            */
+            
+            estr += std::to_string(static_cast<int>(node.edgeBits)) + ',';
+        }
+    }
+    
+    return lstr + estr;
 }
 
 struct RoomCounts {

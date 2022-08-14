@@ -7,3 +7,4 @@ Cmake*
 Makefile
 sts_seed_search
 *.txt
+.ipynb_checkpoints/map_graph-checkpoint.ipynb
